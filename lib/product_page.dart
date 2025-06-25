@@ -81,26 +81,46 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> toggleFavorite(int productId) async {
-    if (idUser == null) return;
+    if (idUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Silakan login untuk menambahkan ke favorit')),
+      );
+      return;
+    }
     final url = Uri.parse('${getBaseUrl()}/favorite');
     bool isFav = favoriteProductIds.contains(productId);
+    setState(() {
+      if (isFav) {
+        favoriteProductIds.remove(productId);
+      } else {
+        favoriteProductIds.add(productId);
+      }
+    });
     try {
       if (isFav) {
-        await http.delete(
+        final response = await http.delete(
           url,
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({'id_user': idUser, 'id_product': productId}),
         );
+        if (response.statusCode != 200) {
+          await fetchFavoriteIds();
+        }
       } else {
-        await http.post(
+        final response = await http.post(
           url,
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({'id_user': idUser, 'id_product': productId}),
         );
+        if (response.statusCode != 201) {
+          await fetchFavoriteIds();
+        }
       }
-      await fetchFavoriteIds();
     } catch (e) {
-      return;
+      await fetchFavoriteIds();
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal mengubah status favorit')));
     }
   }
 
@@ -133,17 +153,19 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Fungsi untuk mengambil data favorite berdasarkan id_favorite
-  Future<Map<String, dynamic>?> fetchFavoriteById(int idFavorite) async {
-    final url = Uri.parse('${getBaseUrl()}/favorite/id/$idFavorite');
+  Future<bool> fetchFavoriteStatus(int productId) async {
+    if (idUser == null) return false;
+    final url = Uri.parse(
+      '${getBaseUrl()}/favorite?id_user=$idUser&id_product=$productId',
+    );
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return data;
+        return data['isFavorite'] ?? false;
       }
     } catch (e) {}
-    return null;
+    return false;
   }
 
   String getBaseUrl() {
@@ -272,13 +294,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                         itemBuilder: (context, index) {
                           final product = products[index];
-                          final isFav = favoriteProductIds.contains(
-                            product['id_product'],
-                          );
                           String imageAssetPath = getImageAssetPath(
                             product['product_image'],
                           );
                           return GestureDetector(
+                            key: ValueKey(product['id_product']),
                             onTap: () async {
                               if (product['id_product'] != null) {
                                 final result = await Navigator.push(
@@ -292,7 +312,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 );
                                 if (result == true) {
                                   await fetchFavoriteIds();
-                                  await fetchProducts(brand: selectedBrand);
                                   setState(() {});
                                 }
                               }
@@ -384,19 +403,31 @@ class _HomeScreenState extends State<HomeScreen> {
                                   Positioned(
                                     top: 10,
                                     right: 10,
-                                    child: GestureDetector(
-                                      onTap: () async {
-                                        await toggleFavorite(
-                                          product['id_product'],
+                                    child: FutureBuilder<bool>(
+                                      future: fetchFavoriteStatus(
+                                        product['id_product'],
+                                      ),
+                                      builder: (context, snapshot) {
+                                        final isFav = snapshot.data ?? false;
+                                        return GestureDetector(
+                                          onTap: () async {
+                                            await toggleFavorite(
+                                              product['id_product'],
+                                            );
+                                            setState(() {});
+                                          },
+                                          child: Icon(
+                                            isFav
+                                                ? Icons.favorite
+                                                : Icons.favorite_border,
+                                            color:
+                                                isFav
+                                                    ? Colors.red
+                                                    : Colors.grey,
+                                            size: 25,
+                                          ),
                                         );
                                       },
-                                      child: Icon(
-                                        isFav
-                                            ? Icons.favorite
-                                            : Icons.favorite_border,
-                                        color: isFav ? Colors.red : Colors.grey,
-                                        size: 25,
-                                      ),
                                     ),
                                   ),
                                 ],

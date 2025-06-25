@@ -37,105 +37,12 @@ class _FavoritePageState extends State<FavoritePage> {
     await fetchFavoriteProducts();
   }
 
-  Future<void> fetchFavoriteProducts() async {
-    if (idUser == null) {
-      setState(() {
-        isLoading = false;
-      });
-      return;
-    }
-    final url = Uri.parse('${getBaseUrl()}/favorit/$idUser');
-    try {
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        setState(() {
-          favoriteProducts = data;
-          isLoading = false;
-        });
-      } else {
-        setState(() {
-          isLoading = false;
-        });
-      }
-    } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-
   String getBaseUrl() {
     if (kIsWeb) {
       return 'http://localhost:8080';
     } else {
       return 'http://10.0.2.2:8080'; // android
     }
-  }
-
-  Future<void> fetchProducts({int? category}) async {
-    setState(() {
-      isLoading = true;
-    });
-    String urlStr = '${getBaseUrl()}/produk';
-    if (category != null) {
-      urlStr += '?id_kategori=$category';
-    }
-    final url = Uri.parse(urlStr);
-    try {
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        // Ambil varian untuk setiap produk
-        List<dynamic> productsWithVarian = [];
-        for (final product in data) {
-          final varianUrl = Uri.parse(
-            '${getBaseUrl()}/produk/${product['id_product']}/varian',
-          );
-          final varianResp = await http.get(varianUrl);
-          if (varianResp.statusCode == 200) {
-            final varianList = jsonDecode(varianResp.body);
-            product['varian_produk'] = varianList;
-          } else {
-            product['varian_produk'] = [];
-          }
-          productsWithVarian.add(product);
-        }
-        setState(() {
-          products = productsWithVarian;
-          isLoading = false;
-        });
-      } else {
-        setState(() {
-          isLoading = false;
-        });
-      }
-    } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-
-  Future<int> _getCartCount() async {
-    final prefs = await SharedPreferences.getInstance();
-    final idUser = prefs.getInt('id_user');
-    if (idUser == null) return 0;
-    try {
-      final url = Uri.parse("${getBaseUrl()}/keranjang/$idUser");
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data is List) {
-          int total = 0;
-          for (final item in data) {
-            total += (item['jumlah'] ?? 1) as int;
-          }
-          return total;
-        }
-      }
-    } catch (e) {}
-    return 0;
   }
 
   @override
@@ -160,30 +67,7 @@ class _FavoritePageState extends State<FavoritePage> {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 20.0),
-            child: Stack(
-              children: [
-                FutureBuilder<int>(
-                  future: _getCartCount(),
-                  builder: (context, snapshot) {
-                    int count = snapshot.data ?? 0;
-                    if (count == 0) return SizedBox.shrink();
-                    return Positioned(
-                      right: 8,
-                      top: 8,
-                      child: Container(
-                        padding: const EdgeInsets.all(3),
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text(
-                          '$count',
-                          style: TextStyle(fontSize: 10, color: Colors.white),
-                        ),
-                      ),
-                    );
-                  },
-                ),
+            child: Stack(children: [
               ],
             ),
           ),
@@ -282,13 +166,12 @@ class _FavoritePageState extends State<FavoritePage> {
                                   child: AspectRatio(
                                     aspectRatio: 2,
                                     child:
-                                        (product['gambar_produk'] != null &&
-                                                product['gambar_produk']
+                                        (product['product_image'] != null &&
+                                                product['product_image']
                                                     .toString()
                                                     .isNotEmpty)
-                                            ? Image.network(
-                                              product['gambar_produk']
-                                                  .toString(),
+                                            ? Image.asset(
+                                              'assets/${product['product_image']}',
                                               fit: BoxFit.cover,
                                             )
                                             : Icon(Icons.image, size: 100),
@@ -301,7 +184,7 @@ class _FavoritePageState extends State<FavoritePage> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      'Rp. ${formatter.format(product['harga_product'])}',
+                                      'Rp. ${formatter.format(product['product_price'])}',
                                       style: const TextStyle(
                                         fontFamily: 'Poppins',
                                         fontWeight: FontWeight.w700,
@@ -311,7 +194,7 @@ class _FavoritePageState extends State<FavoritePage> {
                                   ],
                                 ),
                                 Text(
-                                  product['nama_product'] ?? '',
+                                  product['product_name'] ?? '',
                                   style: const TextStyle(
                                     fontFamily: 'Poppins',
                                     fontWeight: FontWeight.w100,
@@ -433,5 +316,56 @@ class _FavoritePageState extends State<FavoritePage> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
+  }
+
+  // Fetch favorite products for the user from the new /favorites endpoint
+  Future<void> fetchFavoriteProducts() async {
+    if (idUser == null) {
+      setState(() {
+        favoriteProducts = [];
+        isLoading = false;
+      });
+      return;
+    }
+    final url = Uri.parse('${getBaseUrl()}/favorites?id_user=$idUser');
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        print('Favorite products: $data'); // Debug log
+        setState(() {
+          favoriteProducts = data;
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          favoriteProducts = [];
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        favoriteProducts = [];
+        isLoading = false;
+      });
+    }
+  }
+
+  // Fetch favorite status for a specific product and user
+  Future<bool> fetchFavoriteStatus(int productId) async {
+    if (idUser == null) return false;
+    final url = Uri.parse(
+      '${getBaseUrl()}/favorite?id_user=$idUser&id_product=$productId',
+    );
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['isFavorite'] == true;
+      }
+    } catch (e) {
+      // Handle error if needed
+    }
+    return false;
   }
 }
