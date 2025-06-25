@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Tambah Produk</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-6">
+  <div class="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-md">
+    <h1 class="text-2xl font-bold mb-6">Tambah Produk Baru</h1>
+    <form id="formProduk" class="space-y-4">
+      <div>
+        <label class="block mb-1 font-medium">Nama Produk</label>
+        <input type="text" name="nama_product" class="w-full border border-gray-300 rounded p-2" required>
+      </div>
+      <div>
+        <label class="block mb-1 font-medium">Harga Produk</label>
+        <input type="number" name="harga_product" class="w-full border border-gray-300 rounded p-2" required>
+      </div>
+      <div>
+        <label class="block mb-1 font-medium">No HP Seller</label>
+        <input type="text" name="nohp_seller" class="w-full border border-gray-300 rounded p-2" required>
+      </div>
+      <div>
+        <label class="block mb-1 font-medium">Kategori</label>
+        <select name="id_kategori" class="w-full border border-gray-300 rounded p-2" required>
+          <option value="">-- Pilih Kategori --</option>
+          <option value="1">Nike</option>
+          <option value="2">Adidas</option>
+          <option value="3">Puma</option>
+        </select>
+      </div>
+
+      <div id="variants" class="space-y-4">
+        <h2 class="text-xl font-semibold mt-6">Varian Produk</h2>
+        <div class="p-4 border rounded space-y-2 bg-gray-50">
+          <div class="grid grid-cols-2 gap-4">
+            <select name="warna" class="border p-2 rounded w-full" required>
+              <option value="">-- Pilih Warna --</option>
+              <option value="Putih">Putih</option>
+              <option value="Hitam">Hitam</option>
+              <option value="Abu-abu">Abu-abu</option>
+              <option value="Merah">Merah</option>
+              <option value="Biru">Biru</option>
+              <option value="Hijau">Hijau</option>
+            </select>
+            <input type="text" name="ukuran" placeholder="Ukuran" class="border p-2 rounded w-full" required>
+            <input type="text" name="gambar_produk" placeholder="Gambar Produk URL" class="border p-2 rounded w-full" required>
+            <input type="text" name="gambar_detail" placeholder="Gambar Detail URL" class="border p-2 rounded w-full" required>
+            <input type="text" name="gambar_cart" placeholder="Gambar Cart URL" class="border p-2 rounded w-full" required>
+            <input type="number" name="stok" placeholder="Stok" class="border p-2 rounded w-full" min="0" required>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 mt-4">Simpan Produk</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById("formProduk").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const form = e.target;
+
+      const variants = Array.from(document.querySelectorAll("#variants > div")).map(v => {
+        const inputs = v.querySelectorAll("input, select");
+        return {
+          warna: inputs[0].value,
+          ukuran: inputs[1].value,
+          gambar_produk: inputs[2].value,
+          gambar_detail: inputs[3].value,
+          gambar_cart: inputs[4].value,
+          stok: parseInt(inputs[5].value)
+        };
+      });
+
+      const payload = {
+        nama_product: form.nama_product.value,
+        harga_product: parseInt(form.harga_product.value),
+        favorit_product: 0,
+        nohp_seller: form.nohp_seller.value,
+        id_kategori: parseInt(form.id_kategori.value),
+        variants
+      };
+
+      const res = await fetch("http://localhost:8080/produk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await res.json();
+      alert(result.success ? "Produk berhasil ditambahkan" : "Gagal menambahkan produk");
+      if (result.success) form.reset();
+    });
+  </script>
+</body>
+</html>
