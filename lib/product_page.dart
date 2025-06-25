@@ -133,6 +133,19 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // Fungsi untuk mengambil data favorite berdasarkan id_favorite
+  Future<Map<String, dynamic>?> fetchFavoriteById(int idFavorite) async {
+    final url = Uri.parse('${getBaseUrl()}/favorite/id/$idFavorite');
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data;
+      }
+    } catch (e) {}
+    return null;
+  }
+
   String getBaseUrl() {
     if (kIsWeb) {
       return 'http://localhost:8080';
@@ -141,14 +154,10 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  String getImageUrl(String? path) {
+  String getImageAssetPath(String? path) {
     if (path == null || path.isEmpty) return '';
-    if (path.startsWith('http')) return path;
-    // Cek jika path sudah mengandung "/assets/", jika tidak tambahkan
-    if (path.contains('/assets/')) {
-      return getBaseUrl() + path;
-    }
-    return getBaseUrl() + '/assets/' + path;
+    if (path.startsWith('assets/')) return path;
+    return 'assets/' + path;
   }
 
   @override
@@ -266,12 +275,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           final isFav = favoriteProductIds.contains(
                             product['id_product'],
                           );
-                          String imageAssetPath =
-                              product['product_image'] ?? '';
+                          String imageAssetPath = getImageAssetPath(
+                            product['product_image'],
+                          );
                           return GestureDetector(
                             onTap: () async {
                               if (product['id_product'] != null) {
-                                await Navigator.push(
+                                final result = await Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder:
@@ -280,9 +290,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                   ),
                                 );
-                                await fetchProducts(brand: selectedBrand);
-                                await fetchFavoriteIds();
-                                setState(() {});
+                                if (result == true) {
+                                  await fetchFavoriteIds();
+                                  await fetchProducts(brand: selectedBrand);
+                                  setState(() {});
+                                }
                               }
                             },
                             child: Card(
@@ -339,19 +351,29 @@ class _HomeScreenState extends State<HomeScreen> {
                                             ),
                                             const SizedBox(height: 4),
                                             Text(
-                                              'Lokasi: ${product['product_location'] ?? '-'}',
+                                              '${product['product_status'] ?? '-'}',
                                               style: const TextStyle(
                                                 fontFamily: 'Poppins',
                                                 fontSize: 11,
                                               ),
                                             ),
                                             const SizedBox(height: 4),
-                                            Text(
-                                              'Status: ${product['product_status'] ?? '-'}',
-                                              style: const TextStyle(
-                                                fontFamily: 'Poppins',
-                                                fontSize: 11,
-                                              ),
+                                            Row(
+                                              children: [
+                                                Icon(
+                                                  Iconsax.location,
+                                                  size: 12,
+                                                  color: Colors.grey[700],
+                                                ),
+                                                SizedBox(width: 2),
+                                                Text(
+                                                  '${product['product_location'] ?? '-'}',
+                                                  style: const TextStyle(
+                                                    fontFamily: 'Poppins',
+                                                    fontSize: 11,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                             const SizedBox(height: 4),
                                           ],

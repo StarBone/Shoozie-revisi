@@ -424,7 +424,7 @@ class _ProfilePageState extends State<ProfilePage> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 IconButton(
-                  icon: const Icon(Iconsax.heart, color: Colors.grey),
+                  icon: const Icon(Iconsax.heart_copy, color: Colors.grey),
                   onPressed: () {
                     Navigator.push(
                       context,
