@@ -8,6 +8,7 @@ import 'package:shoozie/favorite_page.dart';
 import 'package:shoozie/detail_product.dart';
 import 'package:shoozie/profile_page.dart';
 import 'package:shoozie/input_product.dart';
+import 'package:shoozie/seller_product_list.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Product extends StatelessWidget {
@@ -243,6 +244,23 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 0,
         scrolledUnderElevation: 0,
         automaticallyImplyLeading: false,
+        actions: [
+          if (idUser != null) // Only show for logged in users
+            IconButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SellerProductList(),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.inventory_outlined),
+              color: Colors.black,
+              tooltip: 'My Products',
+            ),
+          const SizedBox(width: 8),
+        ],
       ),
       body:
           isLoading
@@ -681,6 +699,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         );
                       },
                     ),
+                    if (idUser != null) // Only show for logged in users
+                      IconButton(
+                        icon: const Icon(Iconsax.shop, color: Colors.grey),
+                        onPressed: () async {
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SellerProductList(),
+                            ),
+                          );
+                        },
+                        tooltip: 'My Products',
+                      ),
                     IconButton(
                       icon: const Icon(Iconsax.user_copy, color: Colors.grey),
                       onPressed: () async {
