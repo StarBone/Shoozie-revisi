@@ -70,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> fetchBrands() async {
-    final response = await http.get(Uri.parse('http://localhost:8080/brands'));
+    final response = await http.get(Uri.parse('${getBaseUrl()}/brands'));
     if (response.statusCode == 200) {
       final List data = json.decode(response.body);
       setState(() {
