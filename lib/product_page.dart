@@ -228,54 +228,88 @@ class _HomeScreenState extends State<HomeScreen> {
               ? const Center(child: CircularProgressIndicator())
               : Column(
                 children: [
-                  // Filter brand dengan dropdown kecil tanpa border dan di tengah
+                  // Filter brand dengan deretan ElevatedButton horizontal (dinamis dari API)
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       vertical: 12.0,
                       horizontal: 20.0,
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center, // Tengah
-                      children: [
-                        SizedBox(
-                          width: 80, // Lebar dropdown kecil
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<int?>(
-                              value: selectedBrandId,
-                              isExpanded: true,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.black,
-                              ),
-                              items: [
-                                const DropdownMenuItem<int?>(
-                                  value: null,
-                                  child: Text('All'),
-                                ),
-                                ...brands.map<DropdownMenuItem<int?>>((brand) {
-                                  return DropdownMenuItem<int?>(
-                                    value: brand['id_brand'],
-                                    child: Text(
-                                      brand['brand_name'],
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  );
-                                }).toList(),
-                              ],
-                              onChanged: (value) {
+                    child: SizedBox(
+                      height: 48,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: ElevatedButton(
+                              onPressed: () {
                                 setState(() {
-                                  selectedBrandId = value;
+                                  selectedBrandId = null;
                                 });
-                                if (value == null) {
-                                  fetchProducts();
-                                } else {
-                                  fetchProducts(brand: value);
-                                }
+                                fetchProducts();
                               },
+                              style: ElevatedButton.styleFrom(
+                                minimumSize: const Size(60, 40),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 22,
+                                ),
+                                backgroundColor:
+                                    selectedBrandId == null
+                                        ? Colors.black
+                                        : Colors.grey[200],
+                                foregroundColor:
+                                    selectedBrandId == null
+                                        ? Colors.white
+                                        : Colors.black,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: const Text('All'),
                             ),
                           ),
-                        ),
-                      ],
+                          ...brands.map<Widget>((brand) {
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    selectedBrandId = brand['id_brand'];
+                                  });
+                                  fetchProducts(brand: brand['id_brand']);
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  minimumSize: const Size(60, 40),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 22,
+                                  ),
+                                  backgroundColor:
+                                      selectedBrandId == brand['id_brand']
+                                          ? Colors.black
+                                          : Colors.grey[200],
+                                  foregroundColor:
+                                      selectedBrandId == brand['id_brand']
+                                          ? Colors.white
+                                          : Colors.black,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                ),
+                                child: Text(
+                                  brand['brand_name'],
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 1,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ],
+                      ),
                     ),
                   ),
                   if (products.isEmpty && !isLoading)
