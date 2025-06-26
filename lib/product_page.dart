@@ -31,21 +31,27 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<dynamic> products = [];
+  List brands = [];
   bool isLoading = true;
-  int? selectedBrand;
+  String? selectedBrand;
+  int? selectedBrandId;
+  String? selectedBrandName;
   int? idUser;
   List<int> favoriteProductIds = [];
 
-  final List<Map<String, dynamic>> brands = [
-    {'label': 'All', 'value': null},
-    {'label': 'Nike', 'value': 1},
-    {'label': 'Adidas', 'value': 2},
-    {'label': 'Puma', 'value': 3},
-  ];
+  // Tambahkan variabel untuk menyimpan semua brand
+  List<Map<String, dynamic>> allBrands = [];
+  Map<String, int> brandNameToId = {};
+
+  List<String> getUniqueBrands() {
+    return allBrands.map((b) => b['brand_name'] as String).toList();
+  }
 
   @override
   void initState() {
     super.initState();
+    fetchBrands();
+    fetchProducts();
     _initUserAndFetch();
   }
 
@@ -60,6 +66,18 @@ class _HomeScreenState extends State<HomeScreen> {
     await fetchProducts();
     if (idUser != null) {
       await fetchFavoriteIds();
+    }
+  }
+
+  Future<void> fetchBrands() async {
+    final response = await http.get(Uri.parse('http://localhost:8080/brands'));
+    if (response.statusCode == 200) {
+      final List data = json.decode(response.body);
+      setState(() {
+        brands = data;
+      });
+    } else {
+      print('Failed to load brands');
     }
   }
 
@@ -81,26 +99,46 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> toggleFavorite(int productId) async {
-    if (idUser == null) return;
+    if (idUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Silakan login untuk menambahkan ke favorit')),
+      );
+      return;
+    }
     final url = Uri.parse('${getBaseUrl()}/favorite');
     bool isFav = favoriteProductIds.contains(productId);
+    setState(() {
+      if (isFav) {
+        favoriteProductIds.remove(productId);
+      } else {
+        favoriteProductIds.add(productId);
+      }
+    });
     try {
       if (isFav) {
-        await http.delete(
+        final response = await http.delete(
           url,
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({'id_user': idUser, 'id_product': productId}),
         );
+        if (response.statusCode != 200) {
+          await fetchFavoriteIds();
+        }
       } else {
-        await http.post(
+        final response = await http.post(
           url,
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({'id_user': idUser, 'id_product': productId}),
         );
+        if (response.statusCode != 201) {
+          await fetchFavoriteIds();
+        }
       }
-      await fetchFavoriteIds();
     } catch (e) {
-      return;
+      await fetchFavoriteIds();
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal mengubah status favorit')));
     }
   }
 
@@ -120,6 +158,9 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() {
           products = data;
           isLoading = false;
+          if (brand == null) {
+            // Hanya update daftar brand saat fetch tanpa filter
+          }
         });
       } else {
         setState(() {
@@ -133,17 +174,19 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Fungsi untuk mengambil data favorite berdasarkan id_favorite
-  Future<Map<String, dynamic>?> fetchFavoriteById(int idFavorite) async {
-    final url = Uri.parse('${getBaseUrl()}/favorite/id/$idFavorite');
+  Future<bool> fetchFavoriteStatus(int productId) async {
+    if (idUser == null) return false;
+    final url = Uri.parse(
+      '${getBaseUrl()}/favorite?id_user=$idUser&id_product=$productId',
+    );
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return data;
+        return data['isFavorite'] ?? false;
       }
     } catch (e) {}
-    return null;
+    return false;
   }
 
   String getBaseUrl() {
@@ -185,62 +228,54 @@ class _HomeScreenState extends State<HomeScreen> {
               ? const Center(child: CircularProgressIndicator())
               : Column(
                 children: [
-                  // Brand Filter
+                  // Filter brand dengan dropdown kecil tanpa border dan di tengah
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: SizedBox(
-                      height: 33,
-                      child: Center(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children:
-                              brands
-                                  .map(
-                                    (brand) => Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 5,
-                                      ),
-                                      child: ElevatedButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            selectedBrand = brand['value'];
-                                          });
-                                          fetchProducts(brand: brand['value']);
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          minimumSize: const Size(60, 100),
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 22,
-                                          ),
-                                          backgroundColor:
-                                              selectedBrand == brand['value']
-                                                  ? Colors.black
-                                                  : Colors.grey[200],
-                                          foregroundColor:
-                                              selectedBrand == brand['value']
-                                                  ? Colors.white
-                                                  : Colors.black,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              16,
-                                            ),
-                                          ),
-                                        ),
-                                        child: Text(
-                                          brand['label'],
-                                          style: const TextStyle(
-                                            fontFamily: 'Poppins',
-                                            fontWeight: FontWeight.w700,
-                                            letterSpacing: 1,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12.0,
+                      horizontal: 20.0,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center, // Tengah
+                      children: [
+                        SizedBox(
+                          width: 80, // Lebar dropdown kecil
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<int?>(
+                              value: selectedBrandId,
+                              isExpanded: true,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.black,
+                              ),
+                              items: [
+                                const DropdownMenuItem<int?>(
+                                  value: null,
+                                  child: Text('All'),
+                                ),
+                                ...brands.map<DropdownMenuItem<int?>>((brand) {
+                                  return DropdownMenuItem<int?>(
+                                    value: brand['id_brand'],
+                                    child: Text(
+                                      brand['brand_name'],
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                  )
-                                  .toList(),
+                                  );
+                                }).toList(),
+                              ],
+                              onChanged: (value) {
+                                setState(() {
+                                  selectedBrandId = value;
+                                });
+                                if (value == null) {
+                                  fetchProducts();
+                                } else {
+                                  fetchProducts(brand: value);
+                                }
+                              },
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
                   if (products.isEmpty && !isLoading)
@@ -272,13 +307,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                         itemBuilder: (context, index) {
                           final product = products[index];
-                          final isFav = favoriteProductIds.contains(
-                            product['id_product'],
-                          );
                           String imageAssetPath = getImageAssetPath(
                             product['product_image'],
                           );
                           return GestureDetector(
+                            key: ValueKey(product['id_product']),
                             onTap: () async {
                               if (product['id_product'] != null) {
                                 final result = await Navigator.push(
@@ -292,7 +325,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 );
                                 if (result == true) {
                                   await fetchFavoriteIds();
-                                  await fetchProducts(brand: selectedBrand);
                                   setState(() {});
                                 }
                               }
@@ -384,19 +416,31 @@ class _HomeScreenState extends State<HomeScreen> {
                                   Positioned(
                                     top: 10,
                                     right: 10,
-                                    child: GestureDetector(
-                                      onTap: () async {
-                                        await toggleFavorite(
-                                          product['id_product'],
+                                    child: FutureBuilder<bool>(
+                                      future: fetchFavoriteStatus(
+                                        product['id_product'],
+                                      ),
+                                      builder: (context, snapshot) {
+                                        final isFav = snapshot.data ?? false;
+                                        return GestureDetector(
+                                          onTap: () async {
+                                            await toggleFavorite(
+                                              product['id_product'],
+                                            );
+                                            setState(() {});
+                                          },
+                                          child: Icon(
+                                            isFav
+                                                ? Icons.favorite
+                                                : Icons.favorite_border,
+                                            color:
+                                                isFav
+                                                    ? Colors.red
+                                                    : Colors.grey,
+                                            size: 25,
+                                          ),
                                         );
                                       },
-                                      child: Icon(
-                                        isFav
-                                            ? Icons.favorite
-                                            : Icons.favorite_border,
-                                        color: isFav ? Colors.red : Colors.grey,
-                                        size: 25,
-                                      ),
                                     ),
                                   ),
                                 ],
@@ -430,7 +474,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       context,
                       MaterialPageRoute(builder: (context) => FavoritePage()),
                     );
-                    fetchProducts(brand: selectedBrand);
                   },
                 ),
                 IconButton(
@@ -440,7 +483,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       context,
                       MaterialPageRoute(builder: (context) => HomeScreen()),
                     );
-                    fetchProducts(brand: selectedBrand);
                   },
                 ),
                 IconButton(
@@ -450,7 +492,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       context,
                       MaterialPageRoute(builder: (context) => ProfilePage()),
                     );
-                    fetchProducts(brand: selectedBrand);
                   },
                 ),
               ],

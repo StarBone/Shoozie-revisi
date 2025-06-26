@@ -18,31 +18,8 @@ class ProductDetailPage extends StatefulWidget {
 class _ProductDetailPageState extends State<ProductDetailPage> {
   Map<String, dynamic>? product;
   bool isLoading = true;
-  bool isFavorite = false;
   int? idUser;
-  bool favoriteChanged = false;
-  List<int> favoriteProductIds = [];
-
-  Future<void> fetchFavoriteIds() async {
-    if (idUser == null) return;
-    final url = Uri.parse('${getBaseUrl()}/favorit/$idUser');
-    try {
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data is List) {
-          setState(() {
-            favoriteProductIds =
-                data.map<int>((item) => item['id_product'] as int).toList();
-          });
-        }
-      }
-    } catch (e) {
-      setState(() {
-        favoriteProductIds = [];
-      });
-    }
-  }
+  bool isFavorite = false;
 
   @override
   void initState() {
@@ -54,8 +31,74 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     final prefs = await SharedPreferences.getInstance();
     idUser = prefs.getInt('id_user');
     await fetchProductDetail();
-    if (idUser != null) {
-      await fetchFavoriteIds();
+    await _loadFavoriteStatus();
+  }
+
+  Future<void> _loadFavoriteStatus() async {
+    if (idUser == null) {
+      setState(() {
+        isFavorite = false;
+      });
+      return;
+    }
+    final url = Uri.parse(
+      '${getBaseUrl()}/favorite?id_user=$idUser&id_product=${widget.productId}',
+    );
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          isFavorite = data['isFavorite'] ?? false;
+        });
+      } else {
+        setState(() {
+          isFavorite = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        isFavorite = false;
+      });
+    }
+  }
+
+  Future<void> toggleFavorite() async {
+    if (idUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Silakan login untuk menambahkan ke favorit')),
+      );
+      return;
+    }
+    final url = Uri.parse('${getBaseUrl()}/favorite');
+    try {
+      if (!isFavorite) {
+        final response = await http.post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'id_user': idUser, 'id_product': widget.productId}),
+        );
+        if (response.statusCode == 201) {
+          setState(() {
+            isFavorite = true;
+          });
+        }
+      } else {
+        final response = await http.delete(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'id_user': idUser, 'id_product': widget.productId}),
+        );
+        if (response.statusCode == 200) {
+          setState(() {
+            isFavorite = false;
+          });
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal mengubah status favorit')));
     }
   }
 
@@ -79,30 +122,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         isLoading = false;
       });
     }
-  }
-
-  Future<void> toggleFavorite() async {
-    if (idUser == null || product == null) return;
-    final url = Uri.parse('${getBaseUrl()}/favorite');
-    final productId = widget.productId;
-    final isFav = favoriteProductIds.contains(productId);
-    try {
-      if (isFav) {
-        await http.delete(
-          url,
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'id_user': idUser, 'id_product': productId}),
-        );
-      } else {
-        await http.post(
-          url,
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'id_user': idUser, 'id_product': productId}),
-        );
-      }
-      await fetchFavoriteIds();
-      setState(() {});
-    } catch (e) {}
   }
 
   void openWhatsApp(String phone) async {
@@ -178,15 +197,18 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        Navigator.pop(context, favoriteChanged);
+        Navigator.pop(
+          context,
+          true,
+        );
         return false;
       },
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.black),
-            onPressed: () {
-              Navigator.pop(context, favoriteChanged);
+            onPressed: () async {
+              Navigator.pop(context, true);
             },
             splashRadius: 24,
           ),
@@ -198,30 +220,24 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               fontSize: 30,
             ),
           ),
+          centerTitle: true,
+          backgroundColor: Colors.white,
+          elevation: 0.5,
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 16.0),
               child: IconButton(
                 icon: Icon(
-                  favoriteProductIds.contains(widget.productId)
-                      ? Icons.favorite
-                      : Icons.favorite_border,
-                  color:
-                      favoriteProductIds.contains(widget.productId)
-                          ? Colors.red
-                          : Colors.grey,
-                  size: kIsWeb ? 25 : 30,
+                  isFavorite ? Icons.favorite : Icons.favorite_border,
+                  color: isFavorite ? Colors.red : Colors.grey,
                 ),
-                onPressed: () async {
-                  await toggleFavorite();
-                },
+                onPressed: toggleFavorite,
                 splashRadius: 24,
+                tooltip:
+                    isFavorite ? 'Hapus dari Favorit' : 'Tambah ke Favorit',
               ),
             ),
           ],
-          centerTitle: true,
-          backgroundColor: Colors.white,
-          elevation: 0.5,
         ),
         backgroundColor: Colors.white,
         body:
