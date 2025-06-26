@@ -73,6 +73,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         automaticallyImplyLeading: false,
         actions: [],
@@ -82,295 +83,428 @@ class _ProfilePageState extends State<ProfilePage> {
           'Profile',
           style: TextStyle(
             fontFamily: 'Gotham',
-            color: Colors.black,
-            fontSize: 30,
+            color: Colors.black87,
+            fontSize: 26,
+            fontWeight: FontWeight.w600,
           ),
         ),
         elevation: 0,
+        shadowColor: Colors.black12,
+        surfaceTintColor: Colors.white,
       ),
       body:
           isLoading
               ? const Center(child: CircularProgressIndicator())
               : userData == null
               ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text('If you want to add Profile'),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => LoginPage()),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 70),
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.white,
-                        textStyle: const TextStyle(color: Colors.white),
+                child: Container(
+                  margin: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(32),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
                       ),
-                      child: const Text(
-                        'Sign In',
-                        style: TextStyle(color: Colors.white),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade50,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.person_outline,
+                          size: 48,
+                          color: Colors.blue.shade400,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text('or'),
-                    const SizedBox(height: 3),
-                    OutlinedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => RegisterPage(),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Access Your Profile',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade800,
+                          fontFamily: 'Gotham',
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Please log in to view and manage your profile information',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey.shade600,
+                          height: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const LoginPage(),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.black,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
                           ),
-                        );
-                      },
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 70),
+                          child: const Text(
+                            'Sign In',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
                       ),
-                      child: const Text(
-                        'Sign Up',
-                        style: TextStyle(color: Colors.black),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: OutlinedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const RegisterPage(),
+                              ),
+                            );
+                          },
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(
+                              color: Colors.grey.shade300,
+                              width: 1.5,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          child: Text(
+                            'Sign Up',
+                            style: TextStyle(
+                              color: Colors.grey.shade700,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               )
               : RefreshIndicator(
                 onRefresh: _refreshUserData,
                 child: ListView(
                   children: [
+                    // Profile Header
                     Container(
-                      width: double.infinity,
-                      color: Colors.grey[300],
+                      margin: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.08),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
                       child: Column(
                         children: [
-                          const SizedBox(height: 12),
-                          CircleAvatar(
-                            radius: 50,
-                            backgroundColor:
-                                userData != null
-                                    ? _getProfileColor(
-                                      userData!['id_user'] ?? 0,
-                                    )
-                                    : Colors.grey[400],
-                            child: Text(
-                              userData != null &&
-                                      userData!['nama_user'] != null &&
-                                      userData!['nama_user'].isNotEmpty
-                                  ? userData!['nama_user'][0].toUpperCase()
-                                  : '',
-                              style: TextStyle(
-                                fontSize: 40,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.grey.shade200,
+                                width: 2,
+                              ),
+                            ),
+                            child: CircleAvatar(
+                              radius: 50,
+                              backgroundColor:
+                                  userData != null
+                                      ? _getProfileColor(
+                                        userData!['id_user'] ?? 0,
+                                      )
+                                      : Colors.grey[400],
+                              child: Text(
+                                userData != null &&
+                                        userData!['username'] != null &&
+                                        userData!['username'].isNotEmpty
+                                    ? userData!['username'][0].toUpperCase()
+                                    : '',
+                                style: const TextStyle(
+                                  fontSize: 40,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 16),
+                          Text(
+                            userData?['username'] ?? 'User',
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                              fontFamily: 'Gotham',
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            userData?['email'] ?? 'No email',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey.shade600,
+                              fontFamily: 'Poppins',
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                    buildInfoTile(
-                      context,
-                      title: 'Nama',
-                      value: userData?['nama_user'] ?? '-',
-                      onChevronTap: () async {
-                        final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => EditNamePage(),
+
+                    // Profile Information Cards
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.08),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
                           ),
-                        );
-                        if (result == true) {
-                          _refreshUserData();
-                        }
-                      },
-                    ),
-                    buildInfoTile(
-                      context,
-                      title: 'Alamat',
-                      value:
-                          (() {
-                            final alamat = userData?['alamat_user'] ?? '-';
-                            if (alamat == '-') return '-';
-                            final cleanAlamat =
-                                alamat
-                                    .replaceAll(RegExp(r'[\n\r]+'), ' ')
-                                    .replaceAll(RegExp(r'\s+'), ' ')
-                                    .trim();
-                            final words = cleanAlamat.split(' ');
-                            final limited =
-                                words.length <= 10
-                                    ? cleanAlamat
-                                    : words.take(10).join(' ') + '...';
-                            const maxLength = 20;
-                            if (limited.length > maxLength) {
-                              return limited.substring(0, maxLength) + '...';
-                            }
-                            return limited;
-                          })(),
-                      onChevronTap: () async {
-                        final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => EditAddressPage(),
-                          ),
-                        );
-                        if (result == true) {
-                          _refreshUserData();
-                        }
-                      },
-                    ),
-                    buildInfoTile(
-                      context,
-                      title: 'Jenis Kelamin',
-                      value:
-                          (() {
-                            final jk =
-                                userData?['jeniskelamin_user']?.toString();
-                            return jk == '1'
-                                ? 'Laki-laki'
-                                : jk == '2'
-                                ? 'Perempuan'
-                                : '-';
-                          })(),
-                      onChevronTap: () async {
-                        final result = await showModalBottomSheet<String>(
-                          context: context,
-                          builder: (context) {
-                            return Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SizedBox(height: 20),
-                                ListTile(
-                                  title: Text(
-                                    'Laki-laki',
-                                    style: TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  onTap: () => Navigator.pop(context, '1'),
-                                ),
-                                ListTile(
-                                  title: Text(
-                                    'Perempuan',
-                                    style: TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  onTap: () => Navigator.pop(context, '2'),
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                        if (result != null &&
-                            result !=
-                                userData?['jeniskelamin_user']?.toString()) {
-                          final prefs = await SharedPreferences.getInstance();
-                          final idUser = prefs.getInt('id_user');
-                          if (idUser != null) {
-                            final url = Uri.parse(
-                              getBaseUrl() + '/users/' + idUser.toString(),
-                            );
-                            await http.patch(
-                              url,
-                              headers: {'Content-Type': 'application/json'},
-                              body: jsonEncode({'jeniskelamin_user': result}),
-                            );
-                            _refreshUserData();
-                          }
-                        }
-                      },
-                    ),
-                    buildInfoTile(
-                      context,
-                      title: 'Tanggal Lahir',
-                      value:
-                          (() {
-                            final tgl = userData?['tgllahir_user'];
-                            if (tgl == null || tgl == '-') return '-';
-                            // Ambil hanya tanggal (tanpa jam)
-                            if (tgl is String && tgl.length >= 10) {
-                              return tgl.substring(0, 10);
-                            }
-                            return tgl.toString();
-                          })(),
-                      onChevronTap: () async {
-                        DateTime? initialDate;
-                        final tgl = userData?['tgllahir_user'];
-                        if (tgl != null && tgl != '-') {
-                          try {
-                            initialDate = DateTime.parse(
-                              tgl.toString().substring(0, 10),
-                            );
-                          } catch (_) {}
-                        }
-                        final picked = await showDatePicker(
-                          context: context,
-                          initialDate: initialDate ?? DateTime(2000, 1, 1),
-                          firstDate: DateTime(1950),
-                          lastDate: DateTime.now(),
-                        );
-                        if (picked != null) {
-                          final prefs = await SharedPreferences.getInstance();
-                          final idUser = prefs.getInt('id_user');
-                          if (idUser != null) {
-                            final url = Uri.parse(
-                              getBaseUrl() + '/users/' + idUser.toString(),
-                            );
-                            await http.patch(
-                              url,
-                              headers: {'Content-Type': 'application/json'},
-                              body: jsonEncode({
-                                'tgllahir_user':
-                                    picked.toIso8601String().split('T')[0],
-                              }),
-                            );
-                            _refreshUserData();
-                          }
-                        }
-                      },
-                    ),
-                    buildInfoTile(
-                      context,
-                      title: 'No. Hp',
-                      value: userData?['nohp_user'] ?? '-',
-                      onChevronTap: () async {
-                        final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => EditPhonePage(),
-                          ),
-                        );
-                        if (result == true) {
-                          _refreshUserData();
-                        }
-                      },
-                    ),
-                    buildInfoTile(
-                      context,
-                      title: 'Email',
-                      value: userData?['email_user'] ?? '-',
-                      // onChevronTap: () {
-                      //   Navigator.push(
-                      //     context,
-                      //     MaterialPageRoute(
-                      //       builder: (context) => RegisterPage(),
-                      //     ),
-                      //   );
-                      // },
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: kIsWeb ? 200 : 150,
+                        ],
                       ),
+                      child: Column(
+                        children: [
+                          buildInfoTile(
+                            context,
+                            title: 'Nama',
+                            value: userData?['username'] ?? '-',
+                            onTap: () async {
+                              final result = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => EditNamePage(),
+                                ),
+                              );
+                              if (result == true) {
+                                _refreshUserData();
+                              }
+                            },
+                          ),
+                          const Divider(height: 1, color: Color(0xFFE5E7EB)),
+                          buildInfoTile(
+                            context,
+                            title: 'Alamat',
+                            value: userData?['address'] ?? '-',
+                            onTap: () async {
+                              final result = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => EditAddressPage(),
+                                ),
+                              );
+                              if (result == true) {
+                                _refreshUserData();
+                              }
+                            },
+                          ),
+                          const Divider(height: 1, color: Color(0xFFE5E7EB)),
+                          buildInfoTile(
+                            context,
+                            title: 'Jenis Kelamin',
+                            value:
+                                (() {
+                                  final jk = userData?['gender']?.toString();
+                                  return jk == '1'
+                                      ? 'Laki-laki'
+                                      : jk == '2'
+                                      ? 'Perempuan'
+                                      : '-';
+                                })(),
+                            onTap: () async {
+                              final result = await showModalBottomSheet<String>(
+                                context: context,
+                                builder: (context) {
+                                  return Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const SizedBox(height: 20),
+                                      ListTile(
+                                        title: const Text(
+                                          'Laki-laki',
+                                          style: TextStyle(
+                                            fontFamily: 'Poppins',
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                        onTap:
+                                            () => Navigator.pop(context, '1'),
+                                      ),
+                                      ListTile(
+                                        title: const Text(
+                                          'Perempuan',
+                                          style: TextStyle(
+                                            fontFamily: 'Poppins',
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                        onTap:
+                                            () => Navigator.pop(context, '2'),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                              if (result != null &&
+                                  result != userData?['gender']?.toString()) {
+                                final prefs =
+                                    await SharedPreferences.getInstance();
+                                final idUser = prefs.getInt('id_user');
+                                if (idUser != null) {
+                                  final url = Uri.parse(
+                                    getBaseUrl() +
+                                        '/users/' +
+                                        idUser.toString(),
+                                  );
+                                  await http.patch(
+                                    url,
+                                    headers: {
+                                      'Content-Type': 'application/json',
+                                    },
+                                    body: jsonEncode({'gender': result}),
+                                  );
+                                  _refreshUserData();
+                                }
+                              }
+                            },
+                          ),
+                          const Divider(height: 1, color: Color(0xFFE5E7EB)),
+                          buildInfoTile(
+                            context,
+                            title: 'Tanggal Lahir',
+                            value:
+                                (() {
+                                  final tgl = userData?['birthday'];
+                                  if (tgl == null || tgl == '-' || tgl == '')
+                                    return '-';
+                                  try {
+                                    if (tgl is String && tgl.length >= 10) {
+                                      return tgl.substring(0, 10);
+                                    }
+                                    return tgl.toString().substring(0, 10);
+                                  } catch (e) {
+                                    return tgl.toString();
+                                  }
+                                })(),
+                            onTap: () async {
+                              DateTime? initialDate;
+                              final tgl = userData?['birthday'];
+                              if (tgl != null && tgl != '-' && tgl != '') {
+                                try {
+                                  String dateOnly = tgl.toString().substring(
+                                    0,
+                                    10,
+                                  );
+                                  List<String> parts = dateOnly.split('-');
+                                  if (parts.length == 3) {
+                                    int year = int.parse(parts[0]);
+                                    int month = int.parse(parts[1]);
+                                    int day = int.parse(parts[2]);
+                                    initialDate = DateTime(year, month, day);
+                                  }
+                                } catch (e) {
+                                  print(
+                                    'Error parsing initial date: $tgl, error: $e',
+                                  );
+                                }
+                              }
+                              final picked = await showDatePicker(
+                                context: context,
+                                initialDate:
+                                    initialDate ?? DateTime(2000, 1, 1),
+                                firstDate: DateTime(1950),
+                                lastDate: DateTime.now(),
+                              );
+                              if (picked != null) {
+                                final prefs =
+                                    await SharedPreferences.getInstance();
+                                final idUser = prefs.getInt('id_user');
+                                if (idUser != null) {
+                                  final url = Uri.parse(
+                                    getBaseUrl() +
+                                        '/users/' +
+                                        idUser.toString(),
+                                  );
+                                  String formattedDate =
+                                      '${picked.year.toString().padLeft(4, '0')}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+                                  await http.patch(
+                                    url,
+                                    headers: {
+                                      'Content-Type': 'application/json',
+                                    },
+                                    body: jsonEncode({
+                                      'birthday': formattedDate,
+                                    }),
+                                  );
+                                  _refreshUserData();
+                                }
+                              }
+                            },
+                          ),
+                          const Divider(height: 1, color: Color(0xFFE5E7EB)),
+                          buildInfoTile(
+                            context,
+                            title: 'No. Hp',
+                            value: userData?['contact'] ?? '-',
+                            onTap: () async {
+                              final result = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => EditPhonePage(),
+                                ),
+                              );
+                              if (result == true) {
+                                _refreshUserData();
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Logout Button
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 20),
                       child: ElevatedButton(
                         onPressed: () async {
                           final prefs = await SharedPreferences.getInstance();
@@ -379,32 +513,40 @@ class _ProfilePageState extends State<ProfilePage> {
                             Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => Product(),
+                                builder: (context) => const Product(),
                               ),
                               (route) => false,
                             );
                           }
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          padding: const EdgeInsets.symmetric(
-                            vertical: kIsWeb ? 18 : 14,
-                          ),
+                          backgroundColor: Colors.red.shade400,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
+                            borderRadius: BorderRadius.circular(16),
                           ),
+                          elevation: 0,
                         ),
-                        child: const Text(
-                          'Logout',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.logout, size: 20),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Logout',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
+
+                    const SizedBox(height: 100), // Space for bottom navigation
                   ],
                 ),
               ),
@@ -463,39 +605,53 @@ class _ProfilePageState extends State<ProfilePage> {
     BuildContext context, {
     required String title,
     required String value,
-    VoidCallback? onChevronTap,
+    VoidCallback? onTap,
   }) {
-    return Padding(
-      padding:
-          kIsWeb
-              ? EdgeInsets.symmetric(horizontal: 20)
-              : EdgeInsets.only(left: 20),
-      child: ListTile(
-        title: Text(
-          title,
-          style: TextStyle(
-            fontFamily: 'Poppins',
-            fontWeight: FontWeight.w500,
-            fontSize: 13,
-          ),
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              value,
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontWeight: FontWeight.w500,
-                fontSize: 13,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w500,
+                      fontSize: 14,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                      color: Colors.black87,
+                    ),
+                    maxLines: null, // Allow unlimited lines
+                    overflow: TextOverflow.visible, // Don't cut off text
+                  ),
+                ],
               ),
             ),
-            IconButton(
-              icon: const Icon(Icons.chevron_right),
-              // padding: EdgeInsets.zero,
-              constraints: BoxConstraints(minWidth: 15, minHeight: 15),
-              onPressed: onChevronTap,
-            ),
+            // Commented out edit button for cleaner look
+            // if (onTap != null)
+            //   Container(
+            //     padding: const EdgeInsets.all(8),
+            //     decoration: BoxDecoration(
+            //       color: Colors.grey.shade100,
+            //       borderRadius: BorderRadius.circular(8),
+            //     ),
+            //     child: Icon(Icons.edit, size: 16, color: Colors.grey.shade600),
+            //   ),
           ],
         ),
       ),

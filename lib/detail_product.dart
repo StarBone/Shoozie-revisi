@@ -197,10 +197,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        Navigator.pop(
-          context,
-          true,
-        );
+        Navigator.pop(context, true);
         return false;
       },
       child: Scaffold(
@@ -247,158 +244,382 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 ? Center(child: Text('Product not found'))
                 : SingleChildScrollView(
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Product Image
-                      Builder(
-                        builder: (context) {
-                          final imagePath = getImageAssetPath(
-                            product!['product_image'],
-                          );
-                          if (imagePath.isNotEmpty) {
-                            return Image.asset(
-                              imagePath,
-                              height: 400,
-                              errorBuilder:
-                                  (context, error, stackTrace) =>
-                                      Icon(Icons.image, size: 200),
-                            );
-                          } else {
-                            return Icon(Icons.image, size: 200);
-                          }
-                        },
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    formatRupiah(product!['product_price']),
-                                    style: TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: kIsWeb ? 14 : 20,
-                                    ),
+                      // Product Image with gradient overlay
+                      Stack(
+                        children: [
+                          Builder(
+                            builder: (context) {
+                              final imagePath = getImageAssetPath(
+                                product!['product_image'],
+                              );
+                              return Container(
+                                height: kIsWeb ? 350 : 300,
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.only(
+                                    bottomLeft: Radius.circular(24),
+                                    bottomRight: Radius.circular(24),
                                   ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    product!['product_name'] ?? '-',
-                                    style: TextStyle(
-                                      fontFamily: 'Roboto',
-                                      fontSize: kIsWeb ? 16 : 22,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.1),
+                                      blurRadius: 10,
+                                      offset: Offset(0, 5),
                                     ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.only(
+                                    bottomLeft: Radius.circular(24),
+                                    bottomRight: Radius.circular(24),
                                   ),
-                                  SizedBox(height: 4),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Icon(
-                                            Iconsax.location,
-                                            size: 12,
-                                            color: Colors.grey[700],
-                                          ),
-                                          SizedBox(width: 1),
-                                          Text(
-                                            product!['product_location'] ?? '-',
-                                            style: TextStyle(
-                                              fontFamily: 'Poppins',
-                                              fontSize: kIsWeb ? 11 : 16,
-                                              color: Colors.grey,
+                                  child:
+                                      imagePath.isNotEmpty
+                                          ? Image.asset(
+                                            imagePath,
+                                            fit: BoxFit.cover,
+                                            errorBuilder:
+                                                (context, error, stackTrace) =>
+                                                    Container(
+                                                      color: Colors.grey[100],
+                                                      child: Center(
+                                                        child: Icon(
+                                                          Icons.image,
+                                                          size: 80,
+                                                          color:
+                                                              Colors.grey[400],
+                                                        ),
+                                                      ),
+                                                    ),
+                                          )
+                                          : Container(
+                                            color: Colors.grey[100],
+                                            child: Center(
+                                              child: Icon(
+                                                Icons.image,
+                                                size: 80,
+                                                color: Colors.grey[400],
+                                              ),
                                             ),
                                           ),
-                                        ],
+                                ),
+                              );
+                            },
+                          ),
+                          // Gradient overlay for better text readability
+                          Positioned(
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            child: Container(
+                              height: 80,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.only(
+                                  bottomLeft: Radius.circular(24),
+                                  bottomRight: Radius.circular(24),
+                                ),
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.transparent,
+                                    Colors.black.withOpacity(0.3),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      // Product Info Card
+                      Container(
+                        margin: EdgeInsets.all(20),
+                        padding: EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 10,
+                              offset: Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Product Name
+                            Text(
+                              product!['product_name'] ?? '-',
+                              style: TextStyle(
+                                fontFamily: 'Roboto',
+                                fontSize: kIsWeb ? 20 : 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            SizedBox(height: 8),
+
+                            // Price
+                            Text(
+                              formatRupiah(product!['product_price']),
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w700,
+                                fontSize: kIsWeb ? 18 : 22,
+                                color: Color(0xFF2E7D32),
+                              ),
+                            ),
+                            SizedBox(height: 16),
+
+                            // Status Badge
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color:
+                                    (product!['product_status'] ?? '')
+                                                .toLowerCase() ==
+                                            'ready'
+                                        ? Colors.green.shade50
+                                        : Colors.red.shade50,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color:
+                                      (product!['product_status'] ?? '')
+                                                  .toLowerCase() ==
+                                              'ready'
+                                          ? Colors.green.shade200
+                                          : Colors.red.shade200,
+                                  width: 1,
+                                ),
+                              ),
+                              child: Text(
+                                product!['product_status'] ?? '-',
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color:
+                                      (product!['product_status'] ?? '')
+                                                  .toLowerCase() ==
+                                              'ready'
+                                          ? Colors.green.shade700
+                                          : Colors.red.shade700,
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 20),
+
+                            // Location and Date Row
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade100,
+                                        borderRadius: BorderRadius.circular(10),
                                       ),
+                                      child: Icon(
+                                        Iconsax.location,
+                                        size: 16,
+                                        color: Colors.grey[700],
+                                      ),
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      product!['product_location'] ?? '-',
+                                      style: TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontSize: kIsWeb ? 12 : 14,
+                                        color: Colors.grey[700],
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Text(
+                                  _formatTanggal(product!['created_at']),
+                                  style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontSize: kIsWeb ? 11 : 12,
+                                    color: Colors.grey[500],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Description Card
+                      Container(
+                        margin: EdgeInsets.symmetric(horizontal: 20),
+                        padding: EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 10,
+                              offset: Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.shade50,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Icon(
+                                    Icons.description,
+                                    size: 20,
+                                    color: Colors.blue.shade600,
+                                  ),
+                                ),
+                                SizedBox(width: 12),
+                                Text(
+                                  'Deskripsi Produk',
+                                  style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: kIsWeb ? 14 : 16,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 16),
+                            Text(
+                              product!['description'] ?? 'Tidak ada deskripsi',
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: kIsWeb ? 13 : 15,
+                                color: Colors.grey[700],
+                                height: 1.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 20),
+
+                      // Contact Card
+                      Container(
+                        margin: EdgeInsets.symmetric(horizontal: 20),
+                        padding: EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 10,
+                              offset: Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green.shade50,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Icon(
+                                    Iconsax.whatsapp,
+                                    size: 20,
+                                    color: Colors.green.shade600,
+                                  ),
+                                ),
+                                SizedBox(width: 12),
+                                Text(
+                                  'Hubungi Penjual',
+                                  style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: kIsWeb ? 14 : 16,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 16),
+                            Container(
+                              width: double.infinity,
+                              padding: EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade50,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.grey.shade200),
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
                                       Text(
-                                        _formatTanggal(product!['created_at']),
+                                        'WhatsApp',
                                         style: TextStyle(
                                           fontFamily: 'Poppins',
-                                          fontSize: kIsWeb ? 11 : 14,
-                                          color: Colors.grey,
+                                          fontSize: 12,
+                                          color: Colors.grey[600],
+                                          fontWeight: FontWeight.w500,
                                         ),
                                       ),
-                                    ],
-                                  ),
-                                  SizedBox(height: 12),
-                                  Text(
-                                    'Detail',
-                                    style: TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: kIsWeb ? 12 : 16,
-                                    ),
-                                  ),
-                                  Divider(color: Colors.black),
-                                  Text(
-                                    'Description :',
-                                    style: TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: kIsWeb ? 12 : 16,
-                                    ),
-                                  ),
-                                  SizedBox(height: 8),
-                                  Text(
-                                    product!['description'] ?? '-',
-                                    style: TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontSize: kIsWeb ? 12 : 16,
-                                    ),
-                                  ),
-                                  SizedBox(height: 12),
-                                  Divider(color: Colors.black),
-                                  Text(
-                                    'Status Product :',
-                                    style: TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: kIsWeb ? 12 : 16,
-                                    ),
-                                  ),
-                                  Text(
-                                    product!['product_status'] ?? '-',
-                                    style: TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontSize: kIsWeb ? 12 : 16,
-                                    ),
-                                  ),
-                                  SizedBox(height: 12),
-                                  Divider(color: Colors.black),
-                                  Text(
-                                    'Nomor Telepon (Whatssapp) :',
-                                    style: TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: kIsWeb ? 12 : 16,
-                                    ),
-                                  ),
-                                  SizedBox(height: 4),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
+                                      SizedBox(height: 4),
                                       Text(
                                         product!['seller_contact'] ?? '-',
                                         style: TextStyle(
                                           fontFamily: 'Poppins',
-                                          fontSize: kIsWeb ? 12 : 16,
+                                          fontSize: kIsWeb ? 14 : 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.black87,
                                         ),
                                       ),
-                                      GestureDetector(
-                                        onTap: () {
-                                          openWhatsApp(
-                                            product!['seller_contact'] ?? '',
-                                          );
-                                        },
-                                        child: Icon(Iconsax.whatsapp, size: 20),
-                                      ),
                                     ],
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      openWhatsApp(
+                                        product!['seller_contact'] ?? '',
+                                      );
+                                    },
+                                    child: Container(
+                                      padding: EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: Colors.green.shade500,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Icon(
+                                        Iconsax.whatsapp,
+                                        size: 20,
+                                        color: Colors.white,
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -406,7 +627,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           ],
                         ),
                       ),
-                      SizedBox(height: 24),
+                      SizedBox(height: 40),
                     ],
                   ),
                 ),

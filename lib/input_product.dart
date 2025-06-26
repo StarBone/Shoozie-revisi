@@ -168,268 +168,599 @@ class _InputProductState extends State<InputProduct> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8F9FA),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: kIsWeb ? 50 : 20),
+            padding: EdgeInsets.symmetric(
+              horizontal: kIsWeb ? 120 : 32,
+              vertical: 24,
+            ),
             child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 60),
-                  const Text(
-                    'Shoozie',
-                    style: TextStyle(fontSize: 32, fontFamily: 'Gotham'),
-                  ),
-                  const SizedBox(height: 60),
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Add Product',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  TextFormField(
-                    controller: _productNameController,
-                    decoration: const InputDecoration(
-                      prefixIcon: Icon(Icons.shopping_bag_outlined),
-                      hintText: 'Product Name',
-                      border: UnderlineInputBorder(),
-                    ),
-                    validator:
-                        (v) => v == null || v.isEmpty ? 'Wajib diisi' : null,
-                  ),
-                  const SizedBox(height: 20),
-                  TextFormField(
-                    controller: _productPriceController,
-                    decoration: const InputDecoration(
-                      prefixIcon: Icon(Icons.attach_money),
-                      hintText: 'Rp 0',
-                      border: UnderlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    onChanged: (value) {
-                      if (value.isNotEmpty) {
-                        String formatted = _formatCurrency(value);
-                        _productPriceController.value = TextEditingValue(
-                          text: formatted,
-                          selection: TextSelection.collapsed(
-                            offset: formatted.length,
-                          ),
-                        );
-                      }
-                    },
-                    validator:
-                        (v) => v == null || v.isEmpty ? 'Wajib diisi' : null,
-                  ),
-                  const SizedBox(height: 20),
-                  DropdownButtonFormField<int>(
-                    value: _selectedBrandId,
-                    decoration: const InputDecoration(
-                      prefixIcon: Icon(Icons.branding_watermark),
-                      hintText: 'Select Brand',
-                      border: UnderlineInputBorder(),
-                    ),
-                    items:
-                        brands.map<DropdownMenuItem<int>>((brand) {
-                          return DropdownMenuItem(
-                            value: brand['id_brand'],
-                            child: Text(brand['brand_name']),
-                          );
-                        }).toList(),
-                    onChanged: (val) => setState(() => _selectedBrandId = val),
-                    validator: (v) => v == null ? 'Wajib diisi' : null,
-                  ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 32),
+                  // Logo Section
                   Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      border: Border(bottom: BorderSide(color: Colors.grey)),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.image_outlined, color: Colors.grey[600]),
-                        SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _productImageBase64 != null
-                                    ? 'Image Selected'
-                                    : 'Select Product Image',
-                                style: TextStyle(
-                                  color:
-                                      _productImageBase64 != null
-                                          ? Colors.black
-                                          : Colors.grey[600],
-                                ),
-                              ),
-                              if (_productImageBase64 != null)
-                                Text(
-                                  'Image uploaded as base64',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.green,
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                        ElevatedButton(
-                          onPressed: _pickImage,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.grey[200],
-                            foregroundColor: Colors.black,
-                          ),
-                          child: Text('Upload'),
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  TextFormField(
-                    controller: _productLocationController,
-                    decoration: const InputDecoration(
-                      prefixIcon: Icon(Icons.location_on_outlined),
-                      hintText: 'Product Location',
-                      border: UnderlineInputBorder(),
+                    child: const Icon(
+                      Icons.add_business_outlined,
+                      size: 48,
+                      color: Colors.black,
                     ),
-                    validator:
-                        (v) => v == null || v.isEmpty ? 'Wajib diisi' : null,
                   ),
-                  const SizedBox(height: 20),
-                  TextFormField(
-                    controller: _sellerContactController,
-                    decoration: const InputDecoration(
-                      prefixIcon: Icon(Icons.phone_outlined),
-                      hintText: 'Seller Contact',
-                      border: UnderlineInputBorder(),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Shoozie',
+                    style: TextStyle(
+                      fontSize: 36,
+                      fontFamily: 'Gotham',
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
                     ),
-                    validator:
-                        (v) => v == null || v.isEmpty ? 'Wajib diisi' : null,
-                    keyboardType: TextInputType.phone,
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Add your product to the marketplace',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontFamily: 'Poppins',
+                      color: Colors.grey.shade600,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  // Add Product Form Card
                   Container(
-                    width: double.infinity,
+                    padding: const EdgeInsets.all(32),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 32,
+                          offset: const Offset(0, 16),
+                          spreadRadius: 0,
+                        ),
+                      ],
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Icon(Icons.info_outline, color: Colors.grey[600]),
-                            SizedBox(width: 16),
-                            Text(
-                              'Product Status',
+                        const Text(
+                          'Add New Product',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontFamily: 'Gotham',
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Fill in the product details to list your item',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontFamily: 'Poppins',
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        // Product Name Field
+                        _buildFormField(
+                          label: 'Product Name',
+                          controller: _productNameController,
+                          icon: Icons.shopping_bag_outlined,
+                          hintText: 'Enter product name',
+                          validator:
+                              (v) =>
+                                  v == null || v.isEmpty
+                                      ? 'Product name is required'
+                                      : null,
+                        ),
+                        const SizedBox(height: 24),
+                        // Brand Field
+                        _buildBrandField(),
+                        const SizedBox(height: 24),
+                        // Price Field
+                        _buildPriceField(),
+                        const SizedBox(height: 24),
+                        // Image Upload Field
+                        _buildImageUploadField(),
+                        const SizedBox(height: 24),
+                        // Product Status Field
+                        _buildStatusField(),
+                        const SizedBox(height: 24),
+                        // Location Field
+                        _buildFormField(
+                          label: 'Product Location',
+                          controller: _productLocationController,
+                          icon: Icons.location_on_outlined,
+                          hintText: 'Enter product location',
+                          validator:
+                              (v) =>
+                                  v == null || v.isEmpty
+                                      ? 'Location is required'
+                                      : null,
+                        ),
+                        const SizedBox(height: 24),
+                        // Seller Contact Field
+                        _buildFormField(
+                          label: 'Seller Contact',
+                          controller: _sellerContactController,
+                          icon: Icons.phone_outlined,
+                          hintText: 'Enter contact number',
+                          keyboardType: TextInputType.phone,
+                          validator:
+                              (v) =>
+                                  v == null || v.isEmpty
+                                      ? 'Contact is required'
+                                      : null,
+                        ),
+                        const SizedBox(height: 24),
+                        // Description Field
+                        _buildFormField(
+                          label: 'Description',
+                          controller: _descriptionController,
+                          icon: Icons.description_outlined,
+                          hintText: 'Enter product description',
+                          maxLines: 3,
+                          validator:
+                              (v) =>
+                                  v == null || v.isEmpty
+                                      ? 'Description is required'
+                                      : null,
+                        ),
+                        const SizedBox(height: 32),
+                        // Add Product Button
+                        SizedBox(
+                          width: double.infinity,
+                          height: 56,
+                          child: ElevatedButton(
+                            onPressed: _addProduct,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.black,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            child: const Text(
+                              'Add Product',
                               style: TextStyle(
                                 fontSize: 16,
-                                color: Colors.grey[600],
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
-                          ],
+                          ),
                         ),
-                        SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: RadioListTile<String>(
-                                title: Text('Ready'),
-                                value: 'Ready',
-                                groupValue: _productStatus,
-                                onChanged: (String? value) {
-                                  setState(() {
-                                    _productStatus = value!;
-                                  });
-                                },
-                                contentPadding: EdgeInsets.zero,
+                        const SizedBox(height: 16),
+                        // Cancel Button
+                        SizedBox(
+                          width: double.infinity,
+                          height: 56,
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              side: BorderSide(
+                                color: Colors.grey.shade300,
+                                width: 1,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
                               ),
                             ),
-                            Expanded(
-                              child: RadioListTile<String>(
-                                title: Text('Sold Out'),
-                                value: 'Sold Out',
-                                groupValue: _productStatus,
-                                onChanged: (String? value) {
-                                  setState(() {
-                                    _productStatus = value!;
-                                  });
-                                },
-                                contentPadding: EdgeInsets.zero,
+                            child: Text(
+                              'Cancel',
+                              style: TextStyle(
+                                color: Colors.grey.shade700,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                fontFamily: 'Poppins',
                               ),
                             ),
-                          ],
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  TextFormField(
-                    controller: _descriptionController,
-                    decoration: const InputDecoration(
-                      prefixIcon: Icon(Icons.description_outlined),
-                      hintText: 'Description',
-                      border: UnderlineInputBorder(),
-                    ),
-                    maxLines: 3,
-                    validator:
-                        (v) => v == null || v.isEmpty ? 'Wajib diisi' : null,
-                  ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _addProduct,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        padding: EdgeInsets.symmetric(
-                          vertical: kIsWeb ? 23 : 10,
-                          horizontal: kIsWeb ? 20 : 0,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                      ),
-                      child: const Text(
-                        'Add Product',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text(
-                      'Cancel',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w500,
-                        color: Colors.grey,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
+                  const SizedBox(height: 32),
                 ],
               ),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildFormField({
+    required String label,
+    required TextEditingController controller,
+    required IconData icon,
+    required String hintText,
+    TextInputType? keyboardType,
+    int maxLines = 1,
+    String? Function(String?)? validator,
+    void Function(String)? onChanged,
+    List<TextInputFormatter>? inputFormatters,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.w500,
+            color: Colors.grey.shade700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          maxLines: maxLines,
+          onChanged: onChanged,
+          inputFormatters: inputFormatters,
+          decoration: InputDecoration(
+            prefixIcon: Icon(icon, color: Colors.grey.shade500, size: 20),
+            hintText: hintText,
+            hintStyle: TextStyle(
+              color: Colors.grey.shade400,
+              fontFamily: 'Poppins',
+            ),
+            filled: true,
+            fillColor: Colors.grey.shade50,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.black, width: 2),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.red.shade300, width: 1),
+            ),
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: maxLines > 1 ? 16 : 16,
+            ),
+          ),
+          validator: validator,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPriceField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Product Price',
+          style: TextStyle(
+            fontSize: 14,
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.w500,
+            color: Colors.grey.shade700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: _productPriceController,
+          keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          onChanged: (value) {
+            if (value.isNotEmpty) {
+              String formatted = _formatCurrency(value);
+              _productPriceController.value = TextEditingValue(
+                text: formatted,
+                selection: TextSelection.collapsed(offset: formatted.length),
+              );
+            }
+          },
+          decoration: InputDecoration(
+            prefixIcon: Icon(
+              Icons.attach_money,
+              color: Colors.grey.shade500,
+              size: 20,
+            ),
+            hintText: 'Rp 0',
+            hintStyle: TextStyle(
+              color: Colors.grey.shade400,
+              fontFamily: 'Poppins',
+            ),
+            filled: true,
+            fillColor: Colors.grey.shade50,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.black, width: 2),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.red.shade300, width: 1),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
+          ),
+          validator: (v) => v == null || v.isEmpty ? 'Price is required' : null,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBrandField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Brand',
+          style: TextStyle(
+            fontSize: 14,
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.w500,
+            color: Colors.grey.shade700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<int>(
+          value: _selectedBrandId,
+          decoration: InputDecoration(
+            prefixIcon: Icon(
+              Icons.branding_watermark,
+              color: Colors.grey.shade500,
+              size: 20,
+            ),
+            hintText: 'Select a brand',
+            hintStyle: TextStyle(
+              color: Colors.grey.shade400,
+              fontFamily: 'Poppins',
+            ),
+            filled: true,
+            fillColor: Colors.grey.shade50,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.black, width: 2),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.red.shade300, width: 1),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
+          ),
+          items:
+              brands.map<DropdownMenuItem<int>>((brand) {
+                return DropdownMenuItem(
+                  value: brand['id_brand'],
+                  child: Text(
+                    brand['brand_name'],
+                    style: const TextStyle(fontFamily: 'Poppins'),
+                  ),
+                );
+              }).toList(),
+          onChanged: (val) => setState(() => _selectedBrandId = val),
+          validator: (v) => v == null ? 'Brand is required' : null,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildImageUploadField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Product Image',
+          style: TextStyle(
+            fontSize: 14,
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.w500,
+            color: Colors.grey.shade700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.grey.shade200, width: 1),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.image_outlined, color: Colors.grey.shade500, size: 20),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _productImageBase64 != null
+                          ? 'Image Selected'
+                          : 'No image selected',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 14,
+                        color:
+                            _productImageBase64 != null
+                                ? Colors.black87
+                                : Colors.grey.shade600,
+                      ),
+                    ),
+                    if (_productImageBase64 != null)
+                      Text(
+                        'Image uploaded successfully',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.green.shade600,
+                          fontFamily: 'Poppins',
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              ElevatedButton(
+                onPressed: _pickImage,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                ),
+                child: const Text(
+                  'Upload',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'Poppins',
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatusField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Product Status',
+          style: TextStyle(
+            fontSize: 14,
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.w500,
+            color: Colors.grey.shade700,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.grey.shade200, width: 1),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color:
+                        _productStatus == 'Ready'
+                            ? Colors.black
+                            : Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: RadioListTile<String>(
+                    title: Text(
+                      'Ready',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color:
+                            _productStatus == 'Ready'
+                                ? Colors.white
+                                : Colors.black87,
+                      ),
+                    ),
+                    value: 'Ready',
+                    groupValue: _productStatus,
+                    activeColor: Colors.white,
+                    onChanged: (String? value) {
+                      setState(() {
+                        _productStatus = value!;
+                      });
+                    },
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 0),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color:
+                        _productStatus == 'Sold Out'
+                            ? Colors.black
+                            : Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: RadioListTile<String>(
+                    title: Text(
+                      'Sold Out',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color:
+                            _productStatus == 'Sold Out'
+                                ? Colors.white
+                                : Colors.black87,
+                      ),
+                    ),
+                    value: 'Sold Out',
+                    groupValue: _productStatus,
+                    activeColor: Colors.white,
+                    onChanged: (String? value) {
+                      setState(() {
+                        _productStatus = value!;
+                      });
+                    },
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 0),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

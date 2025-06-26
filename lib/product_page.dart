@@ -256,7 +256,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       horizontal: 20.0,
                     ),
                     child: SizedBox(
-                      height: 48,
+                      height: 40,
                       child: ListView(
                         scrollDirection: Axis.horizontal,
                         children: [
@@ -270,9 +270,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 fetchProducts();
                               },
                               style: ElevatedButton.styleFrom(
-                                minimumSize: const Size(60, 40),
+                                minimumSize: const Size(50, 32),
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 22,
+                                  horizontal: 16,
                                 ),
                                 backgroundColor:
                                     selectedBrandId == null
@@ -283,7 +283,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ? Colors.white
                                         : Colors.black,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
                               child: const Text('All'),
@@ -300,9 +300,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   fetchProducts(brand: brand['id_brand']);
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  minimumSize: const Size(60, 40),
+                                  minimumSize: const Size(50, 32),
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 22,
+                                    horizontal: 16,
                                   ),
                                   backgroundColor:
                                       selectedBrandId == brand['id_brand']
@@ -313,7 +313,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           ? Colors.white
                                           : Colors.black,
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
                                 child: Text(
@@ -321,9 +321,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
                                     fontFamily: 'Poppins',
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 1,
-                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 0.5,
+                                    fontSize: 11,
                                   ),
                                 ),
                               ),
