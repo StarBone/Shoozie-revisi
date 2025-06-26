@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class InputProduct extends StatefulWidget {
   const InputProduct({super.key});
@@ -27,6 +29,10 @@ class _InputProductState extends State<InputProduct> {
   String? _productImageBase64;
   List<dynamic> brands = [];
 
+  // Image picker variables
+  final ImagePicker _picker = ImagePicker();
+  File? _selectedImageFile;
+
   @override
   void initState() {
     super.initState();
@@ -48,58 +54,228 @@ class _InputProductState extends State<InputProduct> {
   }
 
   Future<void> _pickImage() async {
-    // Simple text input for base64 string
-    TextEditingController base64Controller = TextEditingController();
-
-    showDialog(
+    showModalBottomSheet(
       context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Add Product Image'),
-          content: Column(
+        return Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                'For now, you can paste a base64 image string or just enter a placeholder text:',
-                style: TextStyle(fontSize: 14),
-              ),
-              SizedBox(height: 16),
-              TextField(
-                controller: base64Controller,
-                decoration: InputDecoration(
-                  hintText: 'Paste base64 string or enter "placeholder"',
-                  border: OutlineInputBorder(),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
                 ),
-                maxLines: 3,
               ),
+              const SizedBox(height: 20),
+              const Text(
+                'Select Image Source',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Poppins',
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                      _pickImageFromCamera();
+                    },
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Icon(
+                            Icons.camera_alt,
+                            size: 40,
+                            color: Colors.blue.shade600,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Camera',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                      _pickImageFromGallery();
+                    },
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.green.shade50,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Icon(
+                            Icons.photo_library,
+                            size: 40,
+                            color: Colors.green.shade600,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Gallery',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (base64Controller.text.isNotEmpty) {
-                  setState(() {
-                    _productImageBase64 = base64Controller.text;
-                  });
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Image data added successfully!'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                }
-                Navigator.of(context).pop();
-              },
-              child: Text('Save'),
-            ),
-          ],
         );
       },
     );
+  }
+
+  Future<void> _pickImageFromCamera() async {
+    try {
+      // Add a small delay to ensure proper channel initialization
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1800,
+        maxHeight: 1800,
+        imageQuality: 85,
+        preferredCameraDevice: CameraDevice.rear,
+      );
+
+      if (image != null) {
+        setState(() {
+          _selectedImageFile = File(image.path);
+        });
+        await _convertImageToBase64(image.path);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Photo taken successfully!'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } on PlatformException catch (e) {
+      print('Platform Exception: ${e.code} - ${e.message}');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Camera error: ${e.message ?? 'Unknown error'}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      print('General Exception: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error taking photo: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _pickImageFromGallery() async {
+    try {
+      // Add a small delay to ensure proper channel initialization
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1800,
+        maxHeight: 1800,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        setState(() {
+          _selectedImageFile = File(image.path);
+        });
+        await _convertImageToBase64(image.path);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Image selected successfully!'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } on PlatformException catch (e) {
+      print('Platform Exception: ${e.code} - ${e.message}');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gallery error: ${e.message ?? 'Unknown error'}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      print('General Exception: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error selecting image: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _convertImageToBase64(String imagePath) async {
+    try {
+      File imageFile = File(imagePath);
+      List<int> imageBytes = await imageFile.readAsBytes();
+      String base64String = base64Encode(imageBytes);
+      setState(() {
+        _productImageBase64 = base64String;
+      });
+    } catch (e) {
+      print('Error converting image to base64: $e');
+    }
   }
 
   String _formatCurrency(String value) {
@@ -602,61 +778,114 @@ class _InputProductState extends State<InputProduct> {
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: Colors.grey.shade200, width: 1),
           ),
-          child: Row(
+          child: Column(
             children: [
-              Icon(Icons.image_outlined, color: Colors.grey.shade500, size: 20),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _productImageBase64 != null
-                          ? 'Image Selected'
-                          : 'No image selected',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 14,
-                        color:
-                            _productImageBase64 != null
-                                ? Colors.black87
-                                : Colors.grey.shade600,
+              // Image Preview
+              if (_selectedImageFile != null)
+                Container(
+                  width: double.infinity,
+                  height: 200,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade200, width: 1),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child:
+                        kIsWeb
+                            ? Image.network(
+                              _selectedImageFile!.path,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  color: Colors.grey.shade100,
+                                  child: Icon(
+                                    Icons.broken_image,
+                                    size: 50,
+                                    color: Colors.grey.shade400,
+                                  ),
+                                );
+                              },
+                            )
+                            : Image.file(
+                              _selectedImageFile!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  color: Colors.grey.shade100,
+                                  child: Icon(
+                                    Icons.broken_image,
+                                    size: 50,
+                                    color: Colors.grey.shade400,
+                                  ),
+                                );
+                              },
+                            ),
+                  ),
+                ),
+              // Upload Button Row
+              Row(
+                children: [
+                  Icon(
+                    Icons.image_outlined,
+                    color: Colors.grey.shade500,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _selectedImageFile != null
+                              ? 'Image Selected'
+                              : 'No image selected',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 14,
+                            color:
+                                _selectedImageFile != null
+                                    ? Colors.black87
+                                    : Colors.grey.shade600,
+                          ),
+                        ),
+                        if (_selectedImageFile != null)
+                          Text(
+                            'Image uploaded successfully',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.green.shade600,
+                              fontFamily: 'Poppins',
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: _pickImage,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
                       ),
                     ),
-                    if (_productImageBase64 != null)
-                      Text(
-                        'Image uploaded successfully',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.green.shade600,
-                          fontFamily: 'Poppins',
-                        ),
+                    child: Text(
+                      _selectedImageFile != null ? 'Change' : 'Upload',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'Poppins',
                       ),
-                  ],
-                ),
-              ),
-              ElevatedButton(
-                onPressed: _pickImage,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                ),
-                child: const Text(
-                  'Upload',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    fontFamily: 'Poppins',
-                  ),
-                ),
+                ],
               ),
             ],
           ),
