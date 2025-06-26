@@ -31,21 +31,27 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<dynamic> products = [];
+  List brands = [];
   bool isLoading = true;
-  int? selectedBrand;
+  String? selectedBrand;
+  int? selectedBrandId;
+  String? selectedBrandName;
   int? idUser;
   List<int> favoriteProductIds = [];
 
-  final List<Map<String, dynamic>> brands = [
-    {'label': 'All', 'value': null},
-    {'label': 'Nike', 'value': 1},
-    {'label': 'Adidas', 'value': 2},
-    {'label': 'Puma', 'value': 3},
-  ];
+  // Tambahkan variabel untuk menyimpan semua brand
+  List<Map<String, dynamic>> allBrands = [];
+  Map<String, int> brandNameToId = {};
+
+  List<String> getUniqueBrands() {
+    return allBrands.map((b) => b['brand_name'] as String).toList();
+  }
 
   @override
   void initState() {
     super.initState();
+    fetchBrands();
+    fetchProducts();
     _initUserAndFetch();
   }
 
@@ -60,6 +66,18 @@ class _HomeScreenState extends State<HomeScreen> {
     await fetchProducts();
     if (idUser != null) {
       await fetchFavoriteIds();
+    }
+  }
+
+  Future<void> fetchBrands() async {
+    final response = await http.get(Uri.parse('http://localhost:8080/brands'));
+    if (response.statusCode == 200) {
+      final List data = json.decode(response.body);
+      setState(() {
+        brands = data;
+      });
+    } else {
+      print('Failed to load brands');
     }
   }
 
@@ -140,6 +158,9 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() {
           products = data;
           isLoading = false;
+          if (brand == null) {
+            // Hanya update daftar brand saat fetch tanpa filter
+          }
         });
       } else {
         setState(() {
@@ -207,62 +228,54 @@ class _HomeScreenState extends State<HomeScreen> {
               ? const Center(child: CircularProgressIndicator())
               : Column(
                 children: [
-                  // Brand Filter
+                  // Filter brand dengan dropdown kecil tanpa border dan di tengah
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: SizedBox(
-                      height: 33,
-                      child: Center(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children:
-                              brands
-                                  .map(
-                                    (brand) => Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 5,
-                                      ),
-                                      child: ElevatedButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            selectedBrand = brand['value'];
-                                          });
-                                          fetchProducts(brand: brand['value']);
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          minimumSize: const Size(60, 100),
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 22,
-                                          ),
-                                          backgroundColor:
-                                              selectedBrand == brand['value']
-                                                  ? Colors.black
-                                                  : Colors.grey[200],
-                                          foregroundColor:
-                                              selectedBrand == brand['value']
-                                                  ? Colors.white
-                                                  : Colors.black,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              16,
-                                            ),
-                                          ),
-                                        ),
-                                        child: Text(
-                                          brand['label'],
-                                          style: const TextStyle(
-                                            fontFamily: 'Poppins',
-                                            fontWeight: FontWeight.w700,
-                                            letterSpacing: 1,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12.0,
+                      horizontal: 20.0,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center, // Tengah
+                      children: [
+                        SizedBox(
+                          width: 80, // Lebar dropdown kecil
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<int?>(
+                              value: selectedBrandId,
+                              isExpanded: true,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.black,
+                              ),
+                              items: [
+                                const DropdownMenuItem<int?>(
+                                  value: null,
+                                  child: Text('All'),
+                                ),
+                                ...brands.map<DropdownMenuItem<int?>>((brand) {
+                                  return DropdownMenuItem<int?>(
+                                    value: brand['id_brand'],
+                                    child: Text(
+                                      brand['brand_name'],
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                  )
-                                  .toList(),
+                                  );
+                                }).toList(),
+                              ],
+                              onChanged: (value) {
+                                setState(() {
+                                  selectedBrandId = value;
+                                });
+                                if (value == null) {
+                                  fetchProducts();
+                                } else {
+                                  fetchProducts(brand: value);
+                                }
+                              },
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
                   if (products.isEmpty && !isLoading)
@@ -461,7 +474,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       context,
                       MaterialPageRoute(builder: (context) => FavoritePage()),
                     );
-                    fetchProducts(brand: selectedBrand);
                   },
                 ),
                 IconButton(
@@ -471,7 +483,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       context,
                       MaterialPageRoute(builder: (context) => HomeScreen()),
                     );
-                    fetchProducts(brand: selectedBrand);
                   },
                 ),
                 IconButton(
@@ -481,7 +492,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       context,
                       MaterialPageRoute(builder: (context) => ProfilePage()),
                     );
-                    fetchProducts(brand: selectedBrand);
                   },
                 ),
               ],

@@ -45,6 +45,12 @@ class _FavoritePageState extends State<FavoritePage> {
     }
   }
 
+  String getImageAssetPath(String? path) {
+    if (path == null || path.isEmpty) return '';
+    if (path.startsWith('assets/')) return path;
+    return 'assets/' + path;
+  }
+
   @override
   Widget build(BuildContext context) {
     final formatter = NumberFormat('#,##0', 'id_ID');
@@ -143,117 +149,126 @@ class _FavoritePageState extends State<FavoritePage> {
 
                 itemBuilder: (context, index) {
                   final product = favoriteProducts[index];
-                  return GestureDetector(
-                    onTap: () {
-                      // TODO: Navigasi ke detail produk jika diinginkan
-                    },
-                    child: Card(
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        side: BorderSide(color: Colors.grey),
-                      ),
-                      color: Colors.white,
-                      child: Stack(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // SizedBox(height: 30),
-                                Expanded(
-                                  child: AspectRatio(
-                                    aspectRatio: 2,
-                                    child:
-                                        (product['product_image'] != null &&
-                                                product['product_image']
-                                                    .toString()
-                                                    .isNotEmpty)
-                                            ? Image.asset(
-                                              'assets/${product['product_image']}',
-                                              fit: BoxFit.cover,
-                                            )
-                                            : Icon(Icons.image, size: 100),
-                                  ),
-                                ),
-
-                                const SizedBox(height: 8),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'Rp. ${formatter.format(product['product_price'])}',
-                                      style: const TextStyle(
-                                        fontFamily: 'Poppins',
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Text(
-                                  product['product_name'] ?? '',
-                                  style: const TextStyle(
-                                    fontFamily: 'Poppins',
-                                    fontWeight: FontWeight.w100,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                SizedBox(
-                                  height: 25,
-                                  width: double.infinity,
-                                  child: ElevatedButton(
-                                    onPressed: () async {
-                                      final result = await Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder:
-                                              (context) => ProductDetailPage(
-                                                productId:
-                                                    product['id_product'],
-                                              ),
-                                        ),
+                  return Card(
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      side: BorderSide(color: Colors.grey),
+                    ),
+                    color: Colors.white,
+                    child: Stack(
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: AspectRatio(
+                                aspectRatio: 2,
+                                child: Builder(
+                                  builder: (context) {
+                                    String imageAssetPath = getImageAssetPath(
+                                      product['product_image'],
+                                    );
+                                    if (imageAssetPath.isNotEmpty) {
+                                      return Image.asset(
+                                        imageAssetPath,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                Icon(Icons.image, size: 100),
                                       );
-                                      if (result == true) {
-                                        fetchFavoriteProducts();
-                                      }
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      foregroundColor: Colors.white,
-                                      backgroundColor: Colors.black,
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 1,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                    ),
-                                    child: const Text(
-                                      'Detail',
-                                      style: TextStyle(fontSize: 11),
-                                    ),
-                                  ),
+                                    } else {
+                                      return Icon(Icons.image, size: 100);
+                                    }
+                                  },
                                 ),
-                              ],
-                            ),
-                          ),
-                          Positioned(
-                            top: 5,
-                            right: 8,
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              child: Icon(
-                                Icons.favorite,
-                                color: Colors.pinkAccent,
-                                size: 25,
                               ),
                             ),
+                            // Sisanya tetap dalam Padding
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'Rp. ${formatter.format(product['product_price'])}',
+                                        style: const TextStyle(
+                                          fontFamily: 'Poppins',
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Text(
+                                    product['product_name'] ?? '',
+                                    style: const TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.w100,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  SizedBox(
+                                    height: 25,
+                                    width: double.infinity,
+                                    child: ElevatedButton(
+                                      onPressed: () async {
+                                        final result = await Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (context) => ProductDetailPage(
+                                                  productId:
+                                                      product['id_product'],
+                                                ),
+                                          ),
+                                        );
+                                        if (result == true) {
+                                          fetchFavoriteProducts();
+                                        }
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        foregroundColor: Colors.white,
+                                        backgroundColor: Colors.black,
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 1,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                        ),
+                                      ),
+                                      child: const Text(
+                                        'Detail',
+                                        style: TextStyle(fontSize: 11),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        Positioned(
+                          top: 5,
+                          right: 8,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            child: Icon(
+                              Icons.favorite,
+                              color: Colors.pinkAccent,
+                              size: 25,
+                            ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   );
                 },
