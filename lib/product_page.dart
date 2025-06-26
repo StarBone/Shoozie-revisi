@@ -245,20 +245,21 @@ class _HomeScreenState extends State<HomeScreen> {
         scrolledUnderElevation: 0,
         automaticallyImplyLeading: false,
         actions: [
-          if (idUser != null) // Only show for logged in users
-            IconButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const SellerProductList(),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.inventory_outlined),
-              color: Colors.black,
-              tooltip: 'My Products',
-            ),
+          IconButton(
+            icon: const Icon(Icons.inventory_outlined, color: Colors.black),
+            tooltip: 'My Products',
+            onPressed: () async {
+              // Use pushReplacement if you want to replace, or push for normal navigation
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder:
+                      (context) =>
+                          SellerProductList(), // Ganti ke SellerProductList jika sudah ada
+                ),
+              );
+            },
+          ),
           const SizedBox(width: 8),
         ],
       ),
@@ -699,19 +700,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         );
                       },
                     ),
-                    if (idUser != null) // Only show for logged in users
-                      IconButton(
-                        icon: const Icon(Iconsax.shop, color: Colors.grey),
-                        onPressed: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SellerProductList(),
-                            ),
-                          );
-                        },
-                        tooltip: 'My Products',
-                      ),
+                    // Removed My Products icon from bottom navigation
                     IconButton(
                       icon: const Icon(Iconsax.user_copy, color: Colors.grey),
                       onPressed: () async {

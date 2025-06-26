@@ -207,13 +207,13 @@ class _SellerProductListState extends State<SellerProductList> {
 
     if (confirm == true) {
       try {
+        // Integrate edit product with PUT /product/:id_product/status
         final response = await http.put(
           Uri.parse('${getBaseUrl()}/product/$productId/status'),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({'product_status': newStatus}),
         );
-
-        if (response.statusCode == 200) {
+        if (response.statusCode == 200 || response.statusCode == 204) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Product status updated to $newStatus'),
@@ -222,6 +222,7 @@ class _SellerProductListState extends State<SellerProductList> {
           );
           await _refreshProducts();
         } else {
+          print('Edit status failed: ${response.statusCode} ${response.body}');
           throw Exception('Failed to update product status');
         }
       } catch (e) {
@@ -260,11 +261,12 @@ class _SellerProductListState extends State<SellerProductList> {
 
     if (confirm == true) {
       try {
+        // Integrate delete product with DELETE /product/:id_product
         final response = await http.delete(
           Uri.parse('${getBaseUrl()}/product/$productId'),
+          headers: {'Content-Type': 'application/json'},
         );
-
-        if (response.statusCode == 200) {
+        if (response.statusCode == 200 || response.statusCode == 204) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Product deleted successfully'),
@@ -273,6 +275,7 @@ class _SellerProductListState extends State<SellerProductList> {
           );
           await _refreshProducts();
         } else {
+          print('Delete failed: ${response.statusCode} ${response.body}');
           throw Exception('Failed to delete product');
         }
       } catch (e) {
@@ -337,130 +340,6 @@ class _SellerProductListState extends State<SellerProductList> {
       ),
       body: Column(
         children: [
-          // Search and Filter Section
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                // Search Bar
-                TextField(
-                  onChanged: (value) {
-                    setState(() {
-                      searchQuery = value;
-                    });
-                  },
-                  decoration: InputDecoration(
-                    hintText: 'Search your products...',
-                    prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                    filled: true,
-                    fillColor: Colors.grey.shade100,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Filter and Sort Row
-                Row(
-                  children: [
-                    // Brand Filter
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<int?>(
-                            value: selectedBrandId,
-                            hint: const Text('All Brands'),
-                            isExpanded: true,
-                            items: [
-                              const DropdownMenuItem<int?>(
-                                value: null,
-                                child: Text('All Brands'),
-                              ),
-                              ...brands.map<DropdownMenuItem<int?>>((brand) {
-                                return DropdownMenuItem(
-                                  value: brand['id_brand'],
-                                  child: Text(brand['brand_name']),
-                                );
-                              }).toList(),
-                            ],
-                            onChanged: (value) {
-                              setState(() {
-                                selectedBrandId = value;
-                              });
-                              fetchProducts();
-                            },
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-
-                    // Sort Dropdown
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            value: selectedSortOption,
-                            isExpanded: true,
-                            items: const [
-                              DropdownMenuItem(
-                                value: 'newest',
-                                child: Text('Newest'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'oldest',
-                                child: Text('Oldest'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'price_low',
-                                child: Text('Price: Low to High'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'price_high',
-                                child: Text('Price: High to Low'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'name_asc',
-                                child: Text('Name: A to Z'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'name_desc',
-                                child: Text('Name: Z to A'),
-                              ),
-                            ],
-                            onChanged: (value) {
-                              setState(() {
-                                selectedSortOption = value!;
-                              });
-                              _sortProducts();
-                            },
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
           // Products Count
           Container(
             width: double.infinity,
@@ -797,16 +676,18 @@ class _SellerProductListState extends State<SellerProductList> {
                           ],
                         ),
                       ),
-                      const PopupMenuItem(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete_outline, color: Colors.red),
-                            SizedBox(width: 8),
-                            Text('Delete'),
-                          ],
+                      if ((product['product_status'] ?? '').toLowerCase() !=
+                          'deleted')
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete_outline, color: Colors.red),
+                              SizedBox(width: 8),
+                              Text('Delete'),
+                            ],
+                          ),
                         ),
-                      ),
                     ],
                 child: Container(
                   padding: const EdgeInsets.all(8),
