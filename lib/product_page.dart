@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:shoozie/favorite_page.dart';
 import 'package:shoozie/detail_product.dart';
 import 'package:shoozie/profile_page.dart';
+import 'package:shoozie/input_product.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Product extends StatelessWidget {
@@ -37,6 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int? selectedBrandId;
   String? selectedBrandName;
   int? idUser;
+  int? idRole;
   List<int> favoriteProductIds = [];
 
   // Tambahkan variabel untuk menyimpan semua brand
@@ -60,12 +62,31 @@ class _HomeScreenState extends State<HomeScreen> {
     idUser = prefs.getInt('id_user');
     if (idUser != null) {
       print('User sudah login, id_user: ' + idUser.toString());
+      await fetchUserRole(idUser!);
     } else {
       print('Belum ada user login');
     }
     await fetchProducts();
     if (idUser != null) {
       await fetchFavoriteIds();
+    }
+  }
+
+  Future<void> fetchUserRole(int userId) async {
+    try {
+      final url = Uri.parse('${getBaseUrl()}/users/$userId');
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          idRole = data['id_role'];
+        });
+        print('User role: $idRole');
+      } else {
+        print('Failed to fetch user role: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching user role: $e');
     }
   }
 
@@ -326,8 +347,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     Expanded(
                       child: GridView.builder(
                         padding: const EdgeInsets.only(
-                          left: 30,
-                          right: 30,
+                          left: 20,
+                          right: 20,
                           top: 5,
                           bottom: 80,
                         ),
@@ -335,9 +356,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
-                              childAspectRatio: kIsWeb ? 0.8 : 0.73,
-                              crossAxisSpacing: 10,
-                              mainAxisSpacing: 10,
+                              childAspectRatio: kIsWeb ? 0.95 : 0.9,
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
                             ),
                         itemBuilder: (context, index) {
                           final product = products[index];
@@ -364,120 +385,243 @@ class _HomeScreenState extends State<HomeScreen> {
                               }
                             },
                             child: Card(
-                              elevation: 0,
+                              elevation: 2,
+                              shadowColor: Colors.black.withOpacity(0.1),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                side: BorderSide(color: Colors.grey),
+                                borderRadius: BorderRadius.circular(12),
+                                side: BorderSide(
+                                  color: Colors.grey.shade200,
+                                  width: 1,
+                                ),
                               ),
                               color: Colors.white,
-                              child: Stack(
-                                children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      if (imageAssetPath.isNotEmpty)
-                                        AspectRatio(
-                                          aspectRatio: 4 / 3,
-                                          child: Image.asset(
-                                            imageAssetPath,
-                                            fit: BoxFit.cover,
-                                            errorBuilder:
-                                                (context, error, stackTrace) =>
-                                                    Icon(
-                                                      Icons.image,
-                                                      size: 100,
+                              child: Container(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Stack(
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        if (imageAssetPath.isNotEmpty)
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                            child: AspectRatio(
+                                              aspectRatio: 16 / 10,
+                                              child: Image.asset(
+                                                imageAssetPath,
+                                                fit: BoxFit.cover,
+                                                errorBuilder:
+                                                    (
+                                                      context,
+                                                      error,
+                                                      stackTrace,
+                                                    ) => Container(
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.grey[100],
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              8,
+                                                            ),
+                                                      ),
+                                                      child: Icon(
+                                                        Icons.image,
+                                                        size: 40,
+                                                        color: Colors.grey[400],
+                                                      ),
                                                     ),
+                                              ),
+                                            ),
+                                          )
+                                        else
+                                          Container(
+                                            height: 80,
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey[100],
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: Center(
+                                              child: Icon(
+                                                Icons.image,
+                                                size: 30,
+                                                color: Colors.grey[400],
+                                              ),
+                                            ),
                                           ),
-                                        )
-                                      else
-                                        Icon(Icons.image, size: 100),
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              product['product_name'] ?? '-',
-                                              style: const TextStyle(
-                                                fontFamily: 'Roboto',
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                                        Expanded(
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 6.0,
+                                              vertical: 4.0,
                                             ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              'Rp. ${formatter.format(product['product_price'] ?? 0)}',
-                                              style: const TextStyle(
-                                                fontFamily: 'Poppins',
-                                                fontWeight: FontWeight.w700,
-                                                fontSize: 13,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              '${product['product_status'] ?? '-'}',
-                                              style: const TextStyle(
-                                                fontFamily: 'Poppins',
-                                                fontSize: 11,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Row(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceEvenly,
                                               children: [
-                                                Icon(
-                                                  Iconsax.location,
-                                                  size: 12,
-                                                  color: Colors.grey[700],
-                                                ),
-                                                SizedBox(width: 2),
                                                 Text(
-                                                  '${product['product_location'] ?? '-'}',
+                                                  product['product_name'] ??
+                                                      '-',
+                                                  style: const TextStyle(
+                                                    fontFamily: 'Roboto',
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.black87,
+                                                  ),
+                                                  maxLines: 2,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                                Text(
+                                                  'Rp. ${formatter.format(product['product_price'] ?? 0)}',
                                                   style: const TextStyle(
                                                     fontFamily: 'Poppins',
-                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.w700,
+                                                    fontSize: 10,
+                                                    color: Color(0xFF2E7D32),
                                                   ),
+                                                ),
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 5,
+                                                        vertical: 1,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color:
+                                                        (product['product_status'] ??
+                                                                        '')
+                                                                    .toLowerCase() ==
+                                                                'ready'
+                                                            ? Colors
+                                                                .green
+                                                                .shade50
+                                                            : Colors
+                                                                .red
+                                                                .shade50,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          3,
+                                                        ),
+                                                    border: Border.all(
+                                                      color:
+                                                          (product['product_status'] ??
+                                                                          '')
+                                                                      .toLowerCase() ==
+                                                                  'ready'
+                                                              ? Colors
+                                                                  .green
+                                                                  .shade200
+                                                              : Colors
+                                                                  .red
+                                                                  .shade200,
+                                                      width: 0.5,
+                                                    ),
+                                                  ),
+                                                  child: Text(
+                                                    '${product['product_status'] ?? '-'}',
+                                                    style: TextStyle(
+                                                      fontFamily: 'Poppins',
+                                                      fontSize: 7,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color:
+                                                          (product['product_status'] ??
+                                                                          '')
+                                                                      .toLowerCase() ==
+                                                                  'ready'
+                                                              ? Colors
+                                                                  .green
+                                                                  .shade700
+                                                              : Colors
+                                                                  .red
+                                                                  .shade700,
+                                                    ),
+                                                  ),
+                                                ),
+                                                Row(
+                                                  children: [
+                                                    Icon(
+                                                      Iconsax.location,
+                                                      size: 8,
+                                                      color: Colors.grey[600],
+                                                    ),
+                                                    const SizedBox(width: 2),
+                                                    Expanded(
+                                                      child: Text(
+                                                        '${product['product_location'] ?? '-'}',
+                                                        style: const TextStyle(
+                                                          fontFamily: 'Poppins',
+                                                          fontSize: 8,
+                                                          color: Colors.grey,
+                                                        ),
+                                                        maxLines: 1,
+                                                        overflow:
+                                                            TextOverflow
+                                                                .ellipsis,
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
                                               ],
                                             ),
-                                            const SizedBox(height: 4),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Positioned(
+                                      top: 8,
+                                      right: 8,
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.9),
+                                          shape: BoxShape.circle,
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(
+                                                0.1,
+                                              ),
+                                              blurRadius: 4,
+                                              offset: Offset(0, 2),
+                                            ),
                                           ],
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                  Positioned(
-                                    top: 10,
-                                    right: 10,
-                                    child: FutureBuilder<bool>(
-                                      future: fetchFavoriteStatus(
-                                        product['id_product'],
-                                      ),
-                                      builder: (context, snapshot) {
-                                        final isFav = snapshot.data ?? false;
-                                        return GestureDetector(
-                                          onTap: () async {
-                                            await toggleFavorite(
-                                              product['id_product'],
-                                            );
-                                            setState(() {});
-                                          },
-                                          child: Icon(
-                                            isFav
-                                                ? Icons.favorite
-                                                : Icons.favorite_border,
-                                            color:
-                                                isFav
-                                                    ? Colors.red
-                                                    : Colors.grey,
-                                            size: 25,
+                                        padding: EdgeInsets.all(4),
+                                        child: FutureBuilder<bool>(
+                                          future: fetchFavoriteStatus(
+                                            product['id_product'],
                                           ),
-                                        );
-                                      },
+                                          builder: (context, snapshot) {
+                                            final isFav =
+                                                snapshot.data ?? false;
+                                            return GestureDetector(
+                                              onTap: () async {
+                                                await toggleFavorite(
+                                                  product['id_product'],
+                                                );
+                                                setState(() {});
+                                              },
+                                              child: Icon(
+                                                isFav
+                                                    ? Icons.favorite
+                                                    : Icons.favorite_border,
+                                                color:
+                                                    isFav
+                                                        ? Colors.red
+                                                        : Colors.grey,
+                                                size: 22,
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
                           );
@@ -486,52 +630,74 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                 ],
               ),
-      floatingActionButton: Container(
-        padding: EdgeInsets.symmetric(horizontal: kIsWeb ? 150 : 120),
-        child: Material(
-          elevation: 5,
-          borderRadius: BorderRadius.circular(30),
-          color: Colors.white,
-          child: Container(
-            height: 60,
-            decoration: BoxDecoration(
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          if (idRole == 1) // Only show for admin users
+            FloatingActionButton(
+              heroTag: "add_product",
+              onPressed: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => InputProduct()),
+                );
+              },
+              backgroundColor: Colors.black,
+              child: const Icon(Iconsax.add, color: Colors.white),
+            ),
+          if (idRole == 1) const SizedBox(height: 16),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: kIsWeb ? 150 : 120),
+            child: Material(
+              elevation: 5,
               borderRadius: BorderRadius.circular(30),
               color: Colors.white,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                IconButton(
-                  icon: const Icon(Iconsax.heart_copy, color: Colors.grey),
-                  onPressed: () async {
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => FavoritePage()),
-                    );
-                  },
+              child: Container(
+                height: 60,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(30),
+                  color: Colors.white,
                 ),
-                IconButton(
-                  icon: const Icon(Iconsax.home_2, color: Colors.black),
-                  onPressed: () async {
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => HomeScreen()),
-                    );
-                  },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Iconsax.heart_copy, color: Colors.grey),
+                      onPressed: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => FavoritePage(),
+                          ),
+                        );
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Iconsax.home_2, color: Colors.black),
+                      onPressed: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => HomeScreen()),
+                        );
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Iconsax.user_copy, color: Colors.grey),
+                      onPressed: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ProfilePage(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ),
-                IconButton(
-                  icon: const Icon(Iconsax.user_copy, color: Colors.grey),
-                  onPressed: () async {
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => ProfilePage()),
-                    );
-                  },
-                ),
-              ],
+              ),
             ),
           ),
-        ),
+        ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
