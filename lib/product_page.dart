@@ -391,23 +391,28 @@ class _HomeScreenState extends State<HomeScreen> {
                           );
                           return GestureDetector(
                             key: ValueKey(product['id_product']),
-                            onTap: () async {
-                              if (product['id_product'] != null) {
-                                final result = await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder:
-                                        (context) => ProductDetailPage(
-                                          productId: product['id_product'],
-                                        ),
-                                  ),
-                                );
-                                if (result == true) {
-                                  await fetchFavoriteIds();
-                                  setState(() {});
-                                }
-                              }
-                            },
+                            onTap:
+                                (product['product_status']?.toLowerCase() ==
+                                        'sold out')
+                                    ? null
+                                    : () async {
+                                      if (product['id_product'] != null) {
+                                        final result = await Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (context) => ProductDetailPage(
+                                                  productId:
+                                                      product['id_product'],
+                                                ),
+                                          ),
+                                        );
+                                        if (result == true) {
+                                          await fetchFavoriteIds();
+                                          setState(() {});
+                                        }
+                                      }
+                                    },
                             child: Card(
                               elevation: 2,
                               shadowColor: Colors.black.withOpacity(0.1),
@@ -419,11 +424,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               color: Colors.white,
-                              child: Container(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Stack(
-                                  children: [
-                                    Column(
+                              child: Stack(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
@@ -463,18 +468,20 @@ class _HomeScreenState extends State<HomeScreen> {
                                             ),
                                           )
                                         else
-                                          Container(
-                                            height: 80,
-                                            decoration: BoxDecoration(
-                                              color: Colors.grey[100],
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            child: Center(
-                                              child: Icon(
-                                                Icons.image,
-                                                size: 30,
-                                                color: Colors.grey[400],
+                                          AspectRatio(
+                                            aspectRatio: 16 / 10,
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey[100],
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              child: Center(
+                                                child: Icon(
+                                                  Icons.image,
+                                                  size: 30,
+                                                  color: Colors.grey[400],
+                                                ),
                                               ),
                                             ),
                                           ),
@@ -600,55 +607,95 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                       ],
                                     ),
-                                    Positioned(
-                                      top: 8,
-                                      right: 8,
+                                  ),
+                                  // Overlay for sold out
+                                  if ((product['product_status'] ?? '')
+                                          .toLowerCase() ==
+                                      'sold out') ...[
+                                    Positioned.fill(
                                       child: Container(
                                         decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.9),
-                                          shape: BoxShape.circle,
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black.withOpacity(
-                                                0.1,
-                                              ),
-                                              blurRadius: 4,
-                                              offset: Offset(0, 2),
-                                            ),
-                                          ],
-                                        ),
-                                        padding: EdgeInsets.all(4),
-                                        child: FutureBuilder<bool>(
-                                          future: fetchFavoriteStatus(
-                                            product['id_product'],
+                                          color: Colors.white.withOpacity(0.7),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
                                           ),
-                                          builder: (context, snapshot) {
-                                            final isFav =
-                                                snapshot.data ?? false;
-                                            return GestureDetector(
-                                              onTap: () async {
-                                                await toggleFavorite(
-                                                  product['id_product'],
-                                                );
-                                                setState(() {});
-                                              },
-                                              child: Icon(
-                                                isFav
-                                                    ? Icons.favorite
-                                                    : Icons.favorite_border,
-                                                color:
-                                                    isFav
-                                                        ? Colors.red
-                                                        : Colors.grey,
-                                                size: 22,
-                                              ),
-                                            );
-                                          },
+                                        ),
+                                      ),
+                                    ),
+                                    Positioned.fill(
+                                      child: Center(
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.red.withOpacity(0.85),
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                          ),
+                                          child: const Text(
+                                            'SOLD OUT',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                              letterSpacing: 2,
+                                              fontFamily: 'Poppins',
+                                            ),
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ],
-                                ),
+                                  Positioned(
+                                    top: 8,
+                                    right: 8,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.9),
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(
+                                              0.1,
+                                            ),
+                                            blurRadius: 4,
+                                            offset: Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      padding: EdgeInsets.all(4),
+                                      child: FutureBuilder<bool>(
+                                        future: fetchFavoriteStatus(
+                                          product['id_product'],
+                                        ),
+                                        builder: (context, snapshot) {
+                                          final isFav = snapshot.data ?? false;
+                                          return GestureDetector(
+                                            onTap: () async {
+                                              await toggleFavorite(
+                                                product['id_product'],
+                                              );
+                                              setState(() {});
+                                            },
+                                            child: Icon(
+                                              isFav
+                                                  ? Icons.favorite
+                                                  : Icons.favorite_border,
+                                              color:
+                                                  isFav
+                                                      ? Colors.red
+                                                      : Colors.grey,
+                                              size: 22,
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           );
