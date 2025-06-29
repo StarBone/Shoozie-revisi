@@ -1,4 +1,4 @@
-package com.example.projek_f
+package com.example.Shoozie
 
 import io.flutter.embedding.android.FlutterActivity
 
