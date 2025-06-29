@@ -149,7 +149,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       const SizedBox(height: 32),
                       SizedBox(
                         width: double.infinity,
-                        height: 52,
+                        height: 50,
                         child: ElevatedButton(
                           onPressed: () {
                             Navigator.pushReplacement(
@@ -164,7 +164,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             foregroundColor: Colors.white,
                             elevation: 0,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(12),
                             ),
                           ),
                           child: const Text(
@@ -172,14 +172,15 @@ class _ProfilePageState extends State<ProfilePage> {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
+                              fontFamily: 'Poppins',
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       SizedBox(
                         width: double.infinity,
-                        height: 52,
+                        height: 50,
                         child: OutlinedButton(
                           onPressed: () {
                             Navigator.push(
@@ -190,12 +191,13 @@ class _ProfilePageState extends State<ProfilePage> {
                             );
                           },
                           style: OutlinedButton.styleFrom(
+                            backgroundColor: Colors.white,
                             side: BorderSide(
                               color: Colors.grey.shade300,
-                              width: 1.5,
+                              width: 1,
                             ),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(12),
                             ),
                           ),
                           child: Text(
@@ -204,6 +206,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               color: Colors.grey.shade700,
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
+                              fontFamily: 'Poppins',
                             ),
                           ),
                         ),

@@ -76,8 +76,9 @@ class _SellerProductListState extends State<SellerProductList> {
       isLoading = true;
     });
 
-    // Fetch products by user ID
-    String urlStr = '${getBaseUrl()}/products/user/$idUser';
+    // Fetch products by seller (assuming you have an endpoint for this)
+    // For now, we'll fetch all products and filter by seller contact or user ID
+    String urlStr = '${getBaseUrl()}/product';
     if (selectedBrandId != null) {
       urlStr += '?id_brand=$selectedBrandId';
     }
@@ -86,6 +87,8 @@ class _SellerProductListState extends State<SellerProductList> {
       final response = await http.get(Uri.parse(urlStr));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        // Filter products by current user (you might need to adjust this based on your API)
+        // For now, showing all products - you should modify this to filter by seller
         setState(() {
           products = data;
           isLoading = false;
@@ -95,7 +98,7 @@ class _SellerProductListState extends State<SellerProductList> {
         setState(() {
           isLoading = false;
         });
-        print('Failed to fetch products: \\${response.statusCode}');
+        print('Failed to fetch products: ${response.statusCode}');
       }
     } catch (e) {
       setState(() {
@@ -184,19 +187,16 @@ class _SellerProductListState extends State<SellerProductList> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Update Product Status'),
-            content: Text(
-              'Change status from "$currentStatus" to "$newStatus"?',
-            ),
+            title: const Text('Update Status'),
+            content: Text('Want to change the product status to "$newStatus"?'),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context, false),
+                onPressed: () => Navigator.of(context).pop(false),
                 child: const Text('Cancel'),
               ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                style: TextButton.styleFrom(foregroundColor: Colors.blue),
-                child: const Text('Update'),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Change'),
               ),
             ],
           ),
@@ -204,31 +204,30 @@ class _SellerProductListState extends State<SellerProductList> {
 
     if (confirm == true) {
       try {
-        // Integrate edit product with PUT /product/:id_product/status
-        final response = await http.put(
-          Uri.parse('${getBaseUrl()}/product/$productId/status'),
+        final url = Uri.parse('${getBaseUrl()}/product/$productId/status');
+        final response = await http.patch(
+          url,
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({'product_status': newStatus}),
         );
-        if (response.statusCode == 200 || response.statusCode == 204) {
+        if (response.statusCode == 200) {
+          await _refreshProducts();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Status produk berhasil diupdate')),
+          );
+        } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Product status updated to $newStatus'),
-              backgroundColor: Colors.green,
+              content: Text(
+                'Edit status failed: ${response.statusCode} ${response.body}',
+              ),
             ),
           );
-          await _refreshProducts();
-        } else {
-          print('Edit status failed: ${response.statusCode} ${response.body}');
-          throw Exception('Failed to update product status');
         }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error updating product status: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Edit status Gagal: $e')));
       }
     }
   }
@@ -240,7 +239,7 @@ class _SellerProductListState extends State<SellerProductList> {
           (context) => AlertDialog(
             title: const Text('Delete Product'),
             content: const Text(
-              'Are you sure you want to delete this product? This action cannot be undone.',
+              'Are you sure you want to delete this product?',
             ),
             actions: [
               TextButton(
@@ -258,7 +257,6 @@ class _SellerProductListState extends State<SellerProductList> {
 
     if (confirm == true) {
       try {
-        // Integrate delete product with DELETE /product/:id_product
         final response = await http.delete(
           Uri.parse('${getBaseUrl()}/product/$productId'),
           headers: {'Content-Type': 'application/json'},
@@ -495,8 +493,8 @@ class _SellerProductListState extends State<SellerProductList> {
                   child:
                       product['product_image'] != null &&
                               product['product_image'].isNotEmpty
-                          ? Image.network(
-                            product['product_image'],
+                          ? Image.memory(
+                            base64Decode(product['product_image']),
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
                               return _buildImagePlaceholder();

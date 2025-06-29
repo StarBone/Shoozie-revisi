@@ -180,9 +180,7 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() {
           products = data;
           isLoading = false;
-          if (brand == null) {
-            // Hanya update daftar brand saat fetch tanpa filter
-          }
+          if (brand == null) {}
         });
       } else {
         setState(() {
@@ -268,14 +266,13 @@ class _HomeScreenState extends State<HomeScreen> {
               ? const Center(child: CircularProgressIndicator())
               : Column(
                 children: [
-                  // Filter brand dengan deretan ElevatedButton horizontal (dinamis dari API)
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       vertical: 12.0,
                       horizontal: 20.0,
                     ),
                     child: SizedBox(
-                      height: 40,
+                      height: 30,
                       child: ListView(
                         scrollDirection: Axis.horizontal,
                         children: [
@@ -302,10 +299,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ? Colors.white
                                         : Colors.black,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(50),
                                 ),
                               ),
-                              child: const Text('All'),
+                              child: const Text(
+                                'All',
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 0.5,
+                                  fontSize: 11,
+                                ),
+                              ),
                             ),
                           ),
                           ...brands.map<Widget>((brand) {
@@ -332,7 +337,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           ? Colors.white
                                           : Colors.black,
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(50),
                                   ),
                                 ),
                                 child: Text(
@@ -422,15 +427,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        if (imageAssetPath.isNotEmpty)
+                                        if ((product['product_image'] ?? '')
+                                            .isNotEmpty)
                                           ClipRRect(
                                             borderRadius: BorderRadius.circular(
                                               8,
                                             ),
                                             child: AspectRatio(
                                               aspectRatio: 16 / 10,
-                                              child: Image.asset(
-                                                imageAssetPath,
+                                              child: Image.memory(
+                                                base64Decode(
+                                                  product['product_image'],
+                                                ),
                                                 fit: BoxFit.cover,
                                                 errorBuilder:
                                                     (

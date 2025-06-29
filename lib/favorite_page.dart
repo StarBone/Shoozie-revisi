@@ -106,14 +106,14 @@ class _FavoritePageState extends State<FavoritePage> {
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
-                          Icons.person_outline,
+                          Icons.favorite_border,
                           size: 48,
                           color: Colors.blue.shade400,
                         ),
                       ),
                       const SizedBox(height: 24),
                       Text(
-                        'Access Your Profile',
+                        'Access Your Favorite',
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.w600,
@@ -123,7 +123,7 @@ class _FavoritePageState extends State<FavoritePage> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Please log in to view and manage your profile information',
+                        'Please log in to view and manage your favorite information',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 16,
@@ -273,13 +273,13 @@ class _FavoritePageState extends State<FavoritePage> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                if (imageAssetPath.isNotEmpty)
+                                if ((product['product_image'] ?? '').isNotEmpty)
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(8),
                                     child: AspectRatio(
                                       aspectRatio: 16 / 10,
-                                      child: Image.asset(
-                                        imageAssetPath,
+                                      child: Image.memory(
+                                        base64Decode(product['product_image']),
                                         fit: BoxFit.cover,
                                         errorBuilder:
                                             (context, error, stackTrace) =>

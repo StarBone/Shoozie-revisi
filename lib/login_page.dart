@@ -76,7 +76,7 @@ class _LoginPageState extends State<LoginPage> {
         child: SingleChildScrollView(
           child: Padding(
             padding: EdgeInsets.symmetric(
-              horizontal: kIsWeb ? 120 : 32,
+              horizontal: kIsWeb ? 32 : 20,
               vertical: 24,
             ),
             child: Column(

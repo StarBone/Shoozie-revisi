@@ -21,6 +21,7 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _obscurePassword = true;
   int? _gender; // 1: Laki-laki, 2: Perempuan
   DateTime? _birthday;
+  int? _role; // 1: penjual, 2: pembeli
 
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
@@ -39,6 +40,7 @@ class _RegisterPageState extends State<RegisterPage> {
         "contact": _contactController.text,
         "email": _emailController.text,
         "password": _passwordController.text,
+        "id_role": _role, // kirim role
       }),
     );
     final data = jsonDecode(response.body);
@@ -70,7 +72,7 @@ class _RegisterPageState extends State<RegisterPage> {
         child: SingleChildScrollView(
           child: Padding(
             padding: EdgeInsets.symmetric(
-              horizontal: kIsWeb ? 120 : 32,
+              horizontal: kIsWeb ? 32 : 20,
               vertical: 24,
             ),
             child: Form(
@@ -221,6 +223,9 @@ class _RegisterPageState extends State<RegisterPage> {
                                       ? 'Address is required'
                                       : null,
                         ),
+                        const SizedBox(height: 24),
+                        // Role Field
+                        _buildRoleField(),
                         const SizedBox(height: 32),
                         // Sign Up Button
                         SizedBox(
@@ -544,6 +549,52 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildRoleField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Role',
+          style: TextStyle(
+            fontSize: 14,
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.w500,
+            color: Colors.grey.shade700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: RadioListTile<int>(
+                value: 1,
+                groupValue: _role,
+                onChanged: (val) => setState(() => _role = val),
+                title: const Text('Penjual'),
+              ),
+            ),
+            Expanded(
+              child: RadioListTile<int>(
+                value: 2,
+                groupValue: _role,
+                onChanged: (val) => setState(() => _role = val),
+                title: const Text('Pembeli'),
+              ),
+            ),
+          ],
+        ),
+        if (_role == null)
+          Padding(
+            padding: const EdgeInsets.only(left: 12, top: 4),
+            child: Text(
+              'Role is required',
+              style: TextStyle(color: Colors.red.shade700, fontSize: 12),
+            ),
+          ),
       ],
     );
   }

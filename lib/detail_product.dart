@@ -251,9 +251,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                         children: [
                           Builder(
                             builder: (context) {
-                              final imagePath = getImageAssetPath(
-                                product!['product_image'],
-                              );
+                              final imageBase64 =
+                                  product!['product_image'] ?? '';
                               return Container(
                                 height: kIsWeb ? 350 : 300,
                                 width: double.infinity,
@@ -276,9 +275,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                     bottomRight: Radius.circular(24),
                                   ),
                                   child:
-                                      imagePath.isNotEmpty
-                                          ? Image.asset(
-                                            imagePath,
+                                      imageBase64.isNotEmpty
+                                          ? Image.memory(
+                                            base64Decode(imageBase64),
                                             fit: BoxFit.cover,
                                             errorBuilder:
                                                 (context, error, stackTrace) =>

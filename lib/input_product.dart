@@ -254,21 +254,25 @@ class _InputProductState extends State<InputProduct> {
     } catch (e) {
       print('General Exception: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error selecting image: $e'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error selecting image: $e')));
       }
     }
   }
 
   Future<void> _convertImageToBase64(String imagePath) async {
     try {
-      File imageFile = File(imagePath);
-      List<int> imageBytes = await imageFile.readAsBytes();
+      List<int> imageBytes;
+      if (kIsWeb) {
+        // Web: gunakan XFile
+        final xfile = XFile(imagePath);
+        imageBytes = await xfile.readAsBytes();
+      } else {
+        // Mobile: gunakan File
+        File imageFile = File(imagePath);
+        imageBytes = await imageFile.readAsBytes();
+      }
       String base64String = base64Encode(imageBytes);
       setState(() {
         _productImageBase64 = base64String;
@@ -304,6 +308,9 @@ class _InputProductState extends State<InputProduct> {
     if (!_formKey.currentState!.validate()) return;
 
     final url = Uri.parse('${getBaseUrl()}/product');
+    print(
+      'DEBUG product_image (base64, length): ${(_productImageBase64 ?? '').length}',
+    );
     final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
@@ -318,19 +325,29 @@ class _InputProductState extends State<InputProduct> {
         "id_brand": _selectedBrandId,
       }),
     );
-    final data = jsonDecode(response.body);
-    if (response.statusCode == 201) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(data['message'] ?? 'Produk berhasil ditambahkan'),
-        ),
-      );
-      Navigator.pop(context);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(data['error'] ?? 'Gagal menambahkan produk')),
-      );
+    String message;
+    try {
+      if (response.body.isEmpty) {
+        throw Exception('Empty response from server');
+      }
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 201) {
+        message = data['message'] ?? 'Produk berhasil ditambahkan';
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
+        Navigator.pop(context);
+        return;
+      } else {
+        message = data['error'] ?? 'Gagal menambahkan produk';
+      }
+    } catch (e) {
+      message =
+          'Gagal menambahkan produk: ${response.body.isEmpty ? 'Empty response from server' : response.body}';
     }
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   String getBaseUrl() {
@@ -349,7 +366,7 @@ class _InputProductState extends State<InputProduct> {
         child: SingleChildScrollView(
           child: Padding(
             padding: EdgeInsets.symmetric(
-              horizontal: kIsWeb ? 120 : 32,
+              horizontal: kIsWeb ? 32 : 20,
               vertical: 24,
             ),
             child: Form(
