@@ -172,6 +172,19 @@ class _InputProductState extends State<InputProduct> {
       );
 
       if (image != null) {
+        final int fileSize = await image.length();
+        if (fileSize > 5 * 1024 * 1024) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Ukuran gambar maksimal 5 MB!'),
+                backgroundColor: Colors.red,
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
+          return;
+        }
         setState(() {
           _selectedImageFile = File(image.path);
         });
@@ -225,6 +238,19 @@ class _InputProductState extends State<InputProduct> {
       );
 
       if (image != null) {
+        final int fileSize = await image.length();
+        if (fileSize > 5 * 1024 * 1024) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Ukuran gambar maksimal 5 MB!'),
+                backgroundColor: Colors.red,
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
+          return;
+        }
         setState(() {
           _selectedImageFile = File(image.path);
         });
