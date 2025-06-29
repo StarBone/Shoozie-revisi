@@ -76,9 +76,8 @@ class _SellerProductListState extends State<SellerProductList> {
       isLoading = true;
     });
 
-    // Fetch products by seller (assuming you have an endpoint for this)
-    // For now, we'll fetch all products and filter by seller contact or user ID
-    String urlStr = '${getBaseUrl()}/product';
+    // Fetch products by user ID
+    String urlStr = '${getBaseUrl()}/products/user/$idUser';
     if (selectedBrandId != null) {
       urlStr += '?id_brand=$selectedBrandId';
     }
@@ -87,8 +86,6 @@ class _SellerProductListState extends State<SellerProductList> {
       final response = await http.get(Uri.parse(urlStr));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        // Filter products by current user (you might need to adjust this based on your API)
-        // For now, showing all products - you should modify this to filter by seller
         setState(() {
           products = data;
           isLoading = false;
@@ -98,7 +95,7 @@ class _SellerProductListState extends State<SellerProductList> {
         setState(() {
           isLoading = false;
         });
-        print('Failed to fetch products: ${response.statusCode}');
+        print('Failed to fetch products: \\${response.statusCode}');
       }
     } catch (e) {
       setState(() {
@@ -498,8 +495,8 @@ class _SellerProductListState extends State<SellerProductList> {
                   child:
                       product['product_image'] != null &&
                               product['product_image'].isNotEmpty
-                          ? Image.memory(
-                            base64Decode(product['product_image']),
+                          ? Image.network(
+                            product['product_image'],
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
                               return _buildImagePlaceholder();
